@@ -1,0 +1,795 @@
+# prismでmockを起動するコマンド
+# prism mock -p 7000 sdsp-thirdpartyMonitoring-weather-openAPI.yaml
+openapi: 3.0.0
+info:
+  title: SDSP(空域デジタルツイン) API
+  version: 1.0.0
+tags:
+  - name: ThirdPartyEntryMonitoring
+    description: 第三者立入監視情報のコントローラクラス。
+  - name: WeatherForecastTime
+    description: 航路の安全管理支援のLogicクラス。
+  - name: WeatherWindSpeeds
+    description: 航路の安全管理支援のLogicクラス。
+paths:
+  /third-party-entry-notification-registration:
+    post:
+      # No.33
+      summary: 第三者立入監視情報の通知の登録
+      description: 変更があった場合に通知(Subscribe)を行うため、航路の安全管理支援の通知先をデータプロバイダに登録する。
+      operationId: registerThirdPartyEntryNotification
+      tags:
+        - ThirdPartyEntryMonitoring
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThirdPartyEntryRequestEntity"
+      responses:
+        '201':
+          description: 正常終了
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+  /third-party-entry-notification-change:
+    put:
+      # No.34
+      summary: 第三者立入監視情報の通知の変更
+      description: データプロバイダに登録した情報変更通知先を変更する。
+      operationId: changeThirdPartyEntryNotification
+      tags:
+        - ThirdPartyEntryMonitoring
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThirdPartyEntryRequestEntity"
+      responses:
+        '204':
+          description: 正常終了
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+  /third-party-entry-notification-deletion:
+    delete:
+      # No.35
+      summary: 第三者立入監視情報の通知の変更
+      description: データプロバイダに登録した情報変更通知先を削除する。
+      operationId: deleteThirdPartyEntryNotification
+      tags:
+        - ThirdPartyEntryMonitoring
+      responses:
+        '204':
+          description: 正常終了
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+  /api/StorageSystem/intrusions:
+    get:
+      # No.52
+      summary: 第三者立入監視情報の取得
+      description: 航路の安全管理支援において、予約された航路の適合性評価を行う際に呼び出され、予約された航路が存在するエリア、予約された時間帯の第三者立入監視の情報を返す。
+      operationId: getThirdPartyEntry
+      tags:
+        - ThirdPartyEntry
+      parameters:
+        - in: header
+          name: x-api-key
+          schema:
+            type: apiKey
+            example: "neccrossindbizdev"
+          required: true
+          description: >
+            お客様固有の認証APIキー情報。
+            リクエスト時のヘッダーに値を指定する。
+        - $ref: '#/components/parameters/lat1'
+        - $ref: '#/components/parameters/lon1'
+        - $ref: '#/components/parameters/lat2'
+        - $ref: '#/components/parameters/lon2'
+        - $ref: '#/components/parameters/timestamp'
+        - $ref: '#/components/parameters/maxItemCount'
+      responses:
+        '200':
+          description: 正常にデータを取得
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: リクエストの形式が不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: AWSの権限がない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: APIの認証エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: クエリパラメータの値が不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: スロットル制限の超過
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 予期せぬエラーが発生
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: データベースへの処理に関するエラーが発生
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: タイムアウトが発生
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /safetyManagement/weather-forecast-time:
+    get:
+      summary: 気象予測対象時間リストの取得
+      description: >
+        天候・風速情報の取得APIで予約時間(開始と終了)に含まれる時間を個別に指定するための、
+        指定の気象要素の時間リストを返す。
+      operationId: getWeatherForecastTime
+      tags:
+        - WeatherForecastTime
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+            example: "neccrossindbizdev"
+          required: true
+          description: >
+            お客様固有の認証トークン情報。
+            リクエスト時のヘッダーに値を指定する。
+        - $ref: '#/components/parameters/elements'
+      responses:
+        '200':
+          description: 正常終了
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherForecastTimeListResponseEntity'
+        '400':
+          description: リクエストパラメータが無効
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+        '401':
+          description: authorizationTokenがありません
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+        '403':
+          description: 間違ったauthorizationToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+  /safetyManagement/obtaining-weather-wind-speeds:
+    get:
+      summary: 天候・風速情報の取得
+      description: >
+        航路の安全管理支援において、予約された航路の適合性評価を行う際に呼び出され、
+        ユーザー指定の気象要素の時間リスト(気象予測対象時間)を返すAPIから取得した 気象予測対象時間から指定した時間帯の
+        予約された航路が存在するエリアの天候・風速の情報を返す。
+      operationId: getWeatherWindSpeeds
+      tags:
+        - WeatherWindSpeeds
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+            example: "neccrossindbizdev"
+          required: true
+          description: >
+            お客様固有の認証トークン情報。
+            リクエスト時のヘッダーに値を指定する。
+        - $ref: '#/components/parameters/elements'
+        - $ref: '#/components/parameters/validtime'
+        - $ref: '#/components/parameters/lat_start'
+        - $ref: '#/components/parameters/lon_start'
+        - $ref: '#/components/parameters/lat_end'
+        - $ref: '#/components/parameters/lon_end'
+        - $ref: '#/components/parameters/alt_surface'
+        - $ref: '#/components/parameters/basetime'
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherWindSpeedResponseEntity'
+        '400':
+          description: リクエストパラメータが無効
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+        '401':
+          description: authorizationTokenがありません
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+        '403':
+          description: 間違ったauthorizationToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+components:
+  parameters:
+    areaInfo:
+      name: areaInfo
+      in: query
+      required: true
+      description: エリア情報
+      schema:
+        type: string
+        additionalProperties: true
+        example: "{\"type\": \"Polygon\",\"coordinates\": [[[100.0, 0.0],[101.0, 0.0],[101.0, 1.0],[100.0, 1.0],[100.0, 0.0]]]}"
+    reservationDateTime:
+      name: reservationDateTime
+      in: query
+      required: true
+      description: 予約日時
+      schema:
+        type: string
+        format: date-time
+        example: "2024-11-22T10:50:00Z"
+    lat1:
+      name: lat1
+      in: query
+      required: true
+      description: データ取得対象エリアの左上座標に対する緯度
+      schema:
+        type: number
+        format: float
+        minimum: -90.0
+        maximum: 90.0
+    lon1:
+      name: lon1
+      in: query
+      required: true
+      description: データ取得対象エリアの左上座標に対する経度
+      schema:
+        type: number
+        format: float
+        minimum: -180.0
+        maximum: 180.0
+    lat2:
+      name: lat2
+      in: query
+      required: true
+      description: データ取得対象エリアの右下座標に対する緯度
+      schema:
+        type: number
+        format: float
+        minimum: -90.0
+        maximum: 90.0
+    lon2:
+      name: lon2
+      in: query
+      required: true
+      description: データ取得対象エリアの右下座標に対する経度
+      schema:
+        type: number
+        format: float
+        minimum: -180.0
+        maximum: 180.0
+    timestamp:
+      name: timestamp
+      in: query
+      required: true
+      description: データ取得対象日時（YYYY-MM-DD HH:MM:SS形式）
+      schema:
+        type: string
+        example: "2024-11-22 10:50:00"
+    maxItemCount:
+      name: maxItemCount
+      in: query
+      required: true
+      description: データ取得最大数（最新データから順に取得）
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 3600
+    elements:
+      name: elements
+      in: query
+      required: true
+      schema:
+        type: string
+        example: "ugrd,vgrd"
+      description: >
+        気象要素をカンマ区切りで指定します:
+        ugrd:東西風成分(m/s),
+        vgrd:南北風成分(m/s),
+        tmp:気温(K),
+        apcp:降水量(mm),
+        lcdc:下層雲量(%),
+        apcpとlcdcは地上のみとなります。
+    lat_start:
+      name: lat_start
+      in: query
+      required: true
+      schema:
+        type: string
+      description: 北西端緯度
+      example: "35.993876"
+    lon_start:
+      name: lon_start
+      in: query
+      required: true
+      schema:
+        type: string
+      description: 北西端経度
+      example: "139.101484"
+    lat_end:
+      name: lat_end
+      in: query
+      required: true
+      schema:
+        type: string
+      description: 南東端緯度
+      example: "35.991419"
+    lon_end:
+      name: lon_end
+      in: query
+      required: true
+      schema:
+        type: string
+      description: 南東端経度
+      example: "139.101044"
+    basetime:
+      name: basetime
+      in: query
+      required: true
+      schema:
+        type: string
+        example: "20220708T06"
+      description: 気象予測発表時間UTC 例YYYYMMDDThh(20220708T06)
+    validtime:
+      name: validtime
+      in: query
+      required: true
+      schema:
+        type: string
+        example: "20220708T06,20220708T07"
+      description: 気象予測対象時間UTC 例YYYYMMDDThh(20220708T06)
+    alt_surface:
+      name: alt_surface
+      in: query
+      required: true
+      schema:
+        type: string
+        example: "150"
+      description: 対地高度 10m単位で指定可能 150固定
+  schemas:
+    WeatherWindSpeedResponseEntity:
+      type: object
+      properties:
+        Data:
+          type: array
+          description: 天候・風速情報のリスト
+          items:
+            type: object
+            properties:
+              Contents:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: number
+                    format: double
+                description: 予測データ数値
+              RequestParameters:
+                type: object
+                properties:
+                  Basetime:
+                    type: string
+                    description: 気象予測情報発表時間UTC
+                  Validtime:
+                    type: string
+                    description: 気象予測対象時間UTC
+                  Minute:
+                    type: string
+                    description: 10分単位の指定時間
+                  Element:
+                    type: string
+                    description: 気象要素
+                  Altitude:
+                    type: string
+                    description: 海面高度
+                  Alt_surface:
+                    type: string
+                    description: 地上高度
+                  Lat_start:
+                    type: string
+                    description: 北西端緯度
+                  Lon_start:
+                    type: string
+                    description: 北西端経度
+                  Lat_end:
+                    type: string
+                    description: 南東端緯度
+                  Lon_end:
+                    type: string
+                    description: 南東端経度
+                  Grid:
+                    type: string
+                    description: メッシュサイズ(250m,500m,1000m,2000m)
+                  Lat_interval:
+                    type: string
+                    description: 固定値:-0.0025 緯度の間隔
+                    example: "-0.0025"
+                  Lon_interval:
+                    type: string
+                    description: 固定値:0.003125 経度の間隔
+                    example: "0.003125"
+                  Lat_start_base:
+                    type: string
+                    description: レスポンスデータの北西端緯度
+                  Lon_start_base:
+                    type: string
+                    description: レスポンスデータの北西端経度
+                  Lat_end_base:
+                    type: string
+                    description: レスポンスデータの南東端緯度
+                  Lon_end_base:
+                    type: string
+                    description: レスポンスデータの南東端経度
+                  Height:
+                    type: integer
+                    description: 縦メッシュ数 ※１メッシュ250m
+                  Width:
+                    type: integer
+                    description: 横メッシュ数 ※１メッシュ250m
+      example:
+            Data:
+              - Contents:
+                  [
+                    2.558, 2.569, 2.581,
+                    2.730, 2.735, 2.741,
+                    2.742, 2.743, 2.744
+                  ]                 
+                RequestParameters:
+                  Basetime: "20250117T00"
+                  Validtime: "20250117T00"
+                  Minute: "0"
+                  Element: "ugrd"
+                  Altitude: "410"
+                  Alt_surface: "150"
+                  Lat_start: "35.993876"
+                  Lon_start: "139.101484"
+                  Lat_end: "35.991419"
+                  Lon_end: "139.101044"
+                  Grid: "250m"
+                  Lat_interval: "-0.0025"
+                  Lon_interval: "0.003125"
+                  Lat_start_base: "35.993876"
+                  Lon_start_base: "139.101484"
+                  Lat_end_base: "35.991419"
+                  Lon_end_base: "139.101044"
+                  Height: 3
+                  Width: 3
+              - Contents:
+                  [
+                    4.0, 3.569, 3.581,
+                    3.730, 3.735, 3.741,
+                    3.742, 3.743, 3.744
+                  ]
+                RequestParameters:
+                  Basetime: "20250117T00"
+                  Validtime: "20250117T00"
+                  Minute: "0"
+                  Element: "vgrd"
+                  Altitude: "410"
+                  Alt_surface: "150"
+                  Lat_start: "35.993876"
+                  Lon_start: "139.101484"
+                  Lat_end: "35.991419"
+                  Lon_end: "139.101044"
+                  Grid: "250m"
+                  Lat_interval: "-0.0025"
+                  Lon_interval: "0.003125"
+                  Lat_start_base: "35.993876"
+                  Lon_start_base: "139.101484"
+                  Lat_end_base: "35.991419"
+                  Lon_end_base: "139.101044"
+                  Height: 3
+                  Width: 3
+    WeatherForecastTimeListResponseEntity:
+      type: object
+      properties:
+        Index:
+          type: array
+          items:
+            type: object
+            properties:
+              Element:
+                type: string
+                description: 気象要素
+              Message:
+                type: string
+                description: 処理結果
+              Timelist:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Basetime:
+                      type: string
+                      description: >
+                        気象予測情報発表時間UTC
+                        現在時刻から90分程前に最新情報が取得可能となります。
+                        ※2022/11/10 14:30リクエスト実行時→2022/11/10 13:00発表の情報をレスポンスする。
+                    Validtime:
+                      type: array
+                      items:
+                        type: string
+                      description: 気象予測対象時間UTC
+      example:
+        Index:
+          - Element: "ugrd"
+            Message: "Index for element [ugrd] retrieved successfully."
+            Timelist:
+              - Basetime: "20250116T14"
+                Validtime:
+                  - "20250116T14"
+                  - "20250116T15"
+                  - "20250116T16"
+                  - "20250116T17"
+                  - "20250116T18"
+                  - "20250116T19"
+                  - "20250116T20"
+                  - "20250116T21"
+                  - "20250116T22"
+                  - "20250116T23"
+                  - "20250117T00"
+              - Basetime: "20250116T13"
+                Validtime:
+                  - "20250116T13"
+                  - "20250116T14"
+                  - "20250116T15"
+                  - "20250116T16"
+                  - "20250116T17"
+                  - "20250116T18"
+                  - "20250116T19"
+                  - "20250116T20"
+                  - "20250116T21"
+                  - "20250116T22"
+                  - "20250116T23"
+              - Basetime: "20250116T12"
+          - Element: "vgrd"
+            Message: "Index for element [vgrd] retrieved successfully."
+            Timelist:
+              - Basetime: "20250116T14"
+                Validtime:
+                  - "20250116T14"
+                  - "20250116T15"
+                  - "20250116T16"
+                  - "20250116T17"
+                  - "20250116T18"
+                  - "20250116T19"
+                  - "20250116T20"
+                  - "20250116T21"
+                  - "20250116T22"
+                  - "20250116T23"
+                  - "20250117T00"
+              - Basetime: "20250116T13"
+                Validtime:
+                  - "20250116T13"
+                  - "20250116T14"
+                  - "20250116T15"
+                  - "20250116T16"
+                  - "20250116T17"
+                  - "20250116T18"
+                  - "20250116T19"
+                  - "20250116T20"
+                  - "20250116T21"
+                  - "20250116T22"
+                  - "20250116T23"
+              - Basetime: "20250116T12"
+ 
+    ThirdPartyEntryRequestEntity:
+          type: object
+          description: 通知先情報
+          required:
+            - endPoint
+          properties:
+            endPoint:
+              type: string
+              example: https://****/++++/
+    SuccessResponse:
+      type: object
+      required:
+        - status
+        - message
+        - features
+      properties:
+        status:
+          type: string
+          enum: [success]
+        message:
+          type: string
+          description: REST API成功内容の詳細情報
+        features:
+          type: array
+          items:
+            type: object
+            required:
+              - geometry
+              - properties
+            properties:
+              geometry:
+                type: object
+                required:
+                  - coordinates
+                properties:
+                  coordinates:
+                    type: array
+                    description: 左上と右下の座標情報 [[左上の経度,緯度,高度], [右下の経度,緯度,高度]]
+                    minItems: 2
+                    maxItems: 2
+                    items:
+                      type: array
+                      description: 経度,緯度,高度の情報
+                      minItems: 3
+                      maxItems: 3
+                      items:
+                        type: number
+                        format: float
+                    example: [
+                      [135.123456, 35.123456, 0.0],    # 左上の座標（経度,緯度,高度）
+                      [136.123456, 34.123456, 0.0]     # 右下の座標（経度,緯度,高度）
+                    ]
+              properties:
+                type: object
+                required:
+                  - areaID
+                  - timestamp
+                  - intrusionStatus
+                  - intrusions
+                properties:
+                  areaID:
+                    type: string
+                    description: 侵入エリアを一意に表す識別子
+                    example: "area_1"
+                  timestamp:
+                    type: string
+                    description: 侵入情報送信時刻タイムスタンプ（YYYY-MM-DD HH:MM:SS形式）
+                    format: date-time
+                    example: "2024-02-04T10:00:00Z"
+                  intrusionStatus:
+                    type: integer
+                    description: 侵入状態（0：侵入なし、1：侵入あり）
+                    example: 0
+                  intrusions:
+                    type: array
+                    minItems: 4
+                    maxItems: 4
+                    items:
+                      type: object
+                      required:
+                        - currentTime
+                        - type
+                        - count
+                      properties:
+                        currentTime:
+                          type: string
+                          description: 侵入検知対象がいた時刻（YYYY-MM-DD HH:MM:SS形式）
+                          format: date-time
+                        type:
+                          type: integer
+                          enum: [1, 2, 3, 4]
+                          description: 対象種別（1：車, 2：自転車, 3：人, 4：バイク）
+                        count:
+                          type: integer
+                          minimum: 0
+                          description: 侵入数
+                    example:
+                      - currentTime: "2024-02-04T10:00:00Z"
+                        type: 1
+                        count: 0
+                      - currentTime: "2024-02-04T10:00:00Z"
+                        type: 2
+                        count: 0
+                      - currentTime: "2024-02-04T10:00:00Z"
+                        type: 3
+                        count: 0
+                      - currentTime: "2024-02-04T10:00:00Z"
+                        type: 4
+                        count: 0
+    ErrorResponseEntity:
+      type: object
+      description: エラー時のResponse用Entity
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "入力チェックエラー"
+        description:
+          type: string
+          description: 詳細
+          example: "0 以上の値にしてください"
+    ErrorResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+          description: エラーメッセージ
+  responses:
+    '400':
+      description: 入力チェックエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '500':
+      description: サーバーエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'

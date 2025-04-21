@@ -1,0 +1,85 @@
+openapi: 3.0.0
+info:
+  title: 安全管理支援(A-1-4) API
+  version: 1.0.0
+tags:
+  - name: DroneLocation
+    description: 安全管理支援(A-1-4)のコントローラクラス。
+paths:
+  /drone-location-notification:
+    post:
+      summary: 運行中ドローンの位置情報の通知
+      description: 指定されたエリア内のドローンのテレメトリ情報を USS から航路の安全管理 (A-1-4) へ指定されたエンドポイントに通知する。
+      operationId: notifyDroneLocation
+      tags:
+        - DroneLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DroneLocationNotificationEntity'
+      responses:
+        '204':
+          description: 正常終了
+components:
+  schemas:
+    DroneLocationNotificationEntity:
+      type: object
+      description: 運行中ドローンの位置情報を受信する API 用の entity
+      properties:
+        subscriptionId:
+          type: string
+          description: USS が航路の安全管理 (A-1-4) に通知するためのエリア情報のサブスクリプション ID。
+        reservationId:
+          type: string
+          description: 航路の予約 ID。
+        uasId:
+          type: object
+          description: 運航中ドローンを表す Json オブジェクト。
+          properties:
+            serialNumber:
+              type: string
+              description: ドローンのシリアルナンバー。CTA-2063-A シリアルナンバーフォーマットで表現する。
+            registrationId:
+              type: string
+              description: ドローンの登録 ID。フォーマットは <ICAO 国籍マーク>.<CAA 割り当て ID>。ASCII エンコードされており、大文字の英字（A-Z）、ドット（.）、および数字（0-9）のみが許可される。(例) N.123456 
+            utmId:
+              type: string
+              description: 「セッションID」として機能します。
+            specificSessoionId:
+              type: string
+              description: 特定のフライト (セッション) を識別するためのユニークな 20 バイトの ID。
+        uaType:
+          type: string
+          description: ドローンの種別。
+        timestamp:
+          type: string
+          description: テレメトリ情報取得日時 ( RFC3339 形式 (yyyy-MM-ddTHH:mm:ss.sssZ) ) 。不正な値、値が無い、不明の場合は 0xFFFF とする。
+        latitude:
+          type: number
+          description: ドローンの緯度 (degree)。小数点 7 桁まで。不正な値、値が無い、不明の場合は 0 deg とする。
+          minimum: -90.0
+          maximum: 90.0
+        longitude:
+          type: number
+          description: ドローンの経度 (degree)。小数点 7 桁まで。不正な値、値が無い、不明の場合は 0 deg とする。
+          minimum: -180.0
+          maximum: 180.0
+        aboveGroundLevel:
+          type: integer
+          description: ドローンの対地高度。単位は m。最小解像度は 1 m。不正な値、値が無い、不明の場合は -1000 m とする。
+        trackDirection:
+          type: integer
+          description: ドローンの進行方向 (degree)。最小解像度は 1 deg。不正な値、値が無い、不明の場合は 361 deg とする。
+        speed:
+          type: number
+          description: ドローンの速度 (m/s)。最小解像度は 0.25 m/s。不正な値、値が無い、不明の場合は 255 m/s とする。もし、254.25 m/s 以上の場合は 254.25 m/s とする。
+        verticalSpeed:
+          type: number
+          description: ドローンの垂直速度 (m/s)。不正な値、値が無い、不明の場合は 63 m/s とする。もし、62 m/s 以上の場合は 62 m/s とする。もし、-62 m/s 以下の場合は -62 m/s とする。
+      required:
+        - timestamp
+        - latitude
+        - longitude
+        - aboveGroundLevel

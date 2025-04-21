@@ -1,0 +1,9 @@
+{
+  "dateLibrary": "java21",
+  "interfaceOnly": true,
+  "skipDefaultInterface" : true,
+  "openApiNullable": false,
+  "useTags": true,
+  "useBeanValidation": true,
+  "jackson": true
+}

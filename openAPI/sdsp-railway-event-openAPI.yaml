@@ -1,0 +1,253 @@
+# prismでmockを起動するコマンド
+# prism mock -p 7004 sdsp-railway-event-openAPI.yaml
+openapi: 3.0.0
+info:
+  title: SDSP(空域デジタルツイン) API
+  version: 1.0.0
+tags:
+  - name: event
+    description: イベント／規制空域
+  - name: railwayService
+    description: 鉄道運行情報のコントローラクラス
+paths:
+  /event/restrictedAirSpace:
+    post:
+      summary: 規制空域有無取得
+      description: 経度緯度の範囲と時刻の範囲を指定して交差する規制空域の有無を返す
+      operationId: getRestrictedAirSpace
+      tags:
+        - event
+      requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestrictedAirSpaceRequestEntity"
+          required: true
+      responses:
+        '200':
+          description: 正常応答
+          $ref: '#/components/responses/200'
+        '400':
+          description: 入力チェックエラー
+        '500':
+          description: サーバーエラー
+  /railwayService/regularDiagram:
+    get:
+      summary: 運行ダイヤ取得
+      description: 駅名を２つ指定して定時運行される時刻のリストを取得する
+      operationId: getRegularDiagram
+      tags:
+        - railwayService
+      parameters:
+        - $ref: "#/components/parameters/station1"
+        - $ref: "#/components/parameters/station2"
+        - $ref: "#/components/parameters/datetimeFrom"
+        - $ref: "#/components/parameters/datetimeTo"
+      responses:
+        '200':
+          description: 正常応答
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegularDiagramResponseEntity'
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+  /railwayService/relativePosition:
+    post:
+      summary: 相対位置特定
+      description: 路線の中での位置を駅間を内分する点として相対値(0～1.0)で返す
+      operationId: calcRelativePosition
+      tags:
+        - railwayService
+      requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RelativePositionRequestEntity"
+          required: true
+      responses:
+        '200':
+          description: 正常応答
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelativePositionResponseEntity'
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '404':
+          description: 路線とまたがっていない場合
+          $ref: '#/components/responses/404'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+components:
+  parameters:
+    station1:
+      name: station1
+      in: query
+      required: true
+      schema:
+        type: string
+      example: "西部秩父駅"
+      description: 駅名
+    station2:
+      name: station2
+      in: query
+      required: true
+      schema:
+        type: string
+      example: "横瀬"
+      description: 駅名
+    datetimeFrom:
+      name: datetimeFrom
+      in: query
+      required: true
+      schema:
+        type: string
+      example: "2025-01-09T19:00:00Z"
+      description: |
+        平日休日を区別するための開始日時(UTC)
+        ※version1.0.0では時間は処理しない
+    datetimeTo:
+      name: datetimeTo
+      in: query
+      required: true
+      schema:
+        type: string
+      example: "2025-01-09T20:00:00Z"
+      description: |
+        平日休日を区別するための終了日時(UTC)
+        ※version1.0.0では時間は処理しない
+        ※version1.0.0ではJSTで同一日とする  
+  schemas:
+    RestrictedAirSpaceRequestEntity:
+      type: object
+      description: 規制空域有無取得のリクエストボディ用エンティティ
+      properties:
+        airSpace:
+          type: array
+          description: 経度緯度の範囲を示すPolygon
+          items:
+            type: array
+            description: 経度, 緯度
+            items:
+              type: number
+            example: [139.05112277756052, 35.94823878982743]
+          example: [
+            [139.05112277756052, 35.94823878982743], 
+            [139.05113414436588, 35.94786150811187],
+            [139.05620373955822, 35.94880930997533],
+            [139.05655611052450, 335.9484504348790],
+            [139.05112277756052, 35.94823878982743]
+          ]
+        timeScope:
+          type: array
+          description: |
+            時刻の範囲(UTC)
+            ※version1.0.0ではJSTで同一日とする
+          items:
+            type: string
+          example: ["2025-01-09T23:00:00Z", "2025-01-10T08:00:00Z"]
+      required:
+        - airSpace
+        - timeScope
+    RestrictedAirSpaceResponseEntity:
+      type: object
+      description: 正常応答時のレスポンス用エンティティ
+    RegularDiagramResponseEntity:
+      type: object
+      description: 鉄道運行情報の正常応答時のレスポンス用エンティティ
+      properties:
+        regularDiagram:
+          type: array
+          description: 定時運行の時刻リスト(JST)
+          items:
+            type: array
+            items:
+              type: string
+            example: ["11:08", "11:11"]
+          example: [
+          ]
+    RelativePositionRequestEntity:
+      type: object
+      description: 相対位置特定のリクエストボディ用エンティティ
+      properties:
+        fallToleranceRange:
+          type: array
+          description: 最大落下許容範囲を示すPolygon
+          items:
+            type: array
+            description: 経度, 緯度
+            items:
+              type: number
+            example: [139.09394956177363, 35.9889363058549]
+          example: [
+            [139.09394956177363, 35.9889363058549], 
+            [139.09407094469128, 35.9887360398493],
+            [139.09435543590464, 35.9886593094443],
+            [139.09424922585166, 35.9888611102496],
+            [139.09400835662439, 35.9889969226682],
+            [139.09394956177363, 35.9889363058549]
+          ]
+    RelativePositionResponseEntity:
+      type: object
+      description: 正常応答時のレスポンス用エンティティ
+      properties:
+        station1:
+          type: string
+          description: 駅名
+          example: "西部秩父駅"
+        station2:
+          type: string
+          description: 駅名
+          example: "横瀬"
+        relativePosition:
+          type: string
+          description: 相対位置
+          example: "0.6"
+    ErrorResponseEntity:
+      type: object
+      description: エラー時のResponse用Entity
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "入力チェックエラー"
+        description:
+          type: string
+          description: 詳細
+          example: "0 以上の値にしてください"
+  responses:
+    '200':
+      description: 規制空域有無
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RestrictedAirSpaceResponseEntity'
+    '400':
+      description: 入力チェックエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '404':
+      description: 指定されたリソースが見つからないエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '500':
+      description: サーバーエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'

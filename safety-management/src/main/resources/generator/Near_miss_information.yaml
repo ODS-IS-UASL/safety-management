@@ -1,0 +1,358 @@
+openapi: 3.0.3
+info:
+  title: ヒヤリハット情報の取得
+  version: 1.0.0
+  description: 航路の安全管理支援(A-1-4)において、指定された情報をもとにヒヤリハット情報を返す。
+tags:
+  - name: NearMissInformation
+    description: ヒヤリハット情報の取得API
+paths:
+  /nearMissInformation:
+    post:
+      summary: ヒヤリハット情報の取得
+      operationId: getNearMissInformation
+      tags:
+        - NearMissInformation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NearMissInformationRequest'
+      responses:
+        '200':
+          description: 正常終了
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearMissInformationResponse'
+        '400':
+          description: リクエストが不正です
+        '404':
+          description: 指定した条件にあうヒヤリハット情報が見つかりません
+        '500':
+          description: サーバーエラー
+
+components:
+  schemas:
+    NearMissInformationRequest:
+      required:
+        - dataModelType
+        - attributes
+      type: object
+      description: ヒヤリハット情報の取得リクエストボディ
+      properties:
+        dataModelType:
+          type: string
+          description: データモデルタイプ
+          enum:
+            - test1
+            - test2
+          example: test1
+        attributes:
+          type: object
+          description: データモデル要素
+          required:
+            - areaInfo
+            - startAt
+            - endAt
+          properties:
+            areaInfo:
+              type: object
+              description: リクエスト用エリア情報
+              properties:
+                type:
+                  type: string
+                  description: 種別
+                  enum:
+                    - Polygon
+                  example: "Polygon"
+                coordinates:
+                  description: 座標
+                  type: array
+                  minItems: 1
+                  maxItems: 99
+                  items:
+                    type: array
+                    minItems: 2
+                    maxItems: 2
+                    items:
+                      type: number
+                      format: double
+                      minimum: -180.0000
+                      maximum: 180.0000
+                  example: [
+                    [
+                      [137.7, 37.8],
+                      [140.7, 37.8],
+                      [140.7, 34.8],
+                      [137.7, 34.8],
+                      [137.7, 37.8]
+                    ]
+                  ]
+            startAt:
+              type: string
+              format: date-time
+              description: 開始日時
+              example: yyyy-mm-ddTHH:mm:ssZ
+            endAt:
+              type: string
+              format: date-time
+              description: 終了日時
+              example: yyyy-mm-ddTHH:mm:ssZ
+            airwayAdministratorId:
+              type: string
+              description: 航路運営者ID
+              example: 123e4567-e89b-12d3-a456-426614174000
+            operatorId:
+              type: string
+              description: 運航事業者ID
+              example: 123e4567-e89b-12d3-a456-426614174000
+            airwayId:
+              type: string
+              description: 航路ID
+              example: 123e4567-e89b-12d3-a456-426614174000
+            airwaySectionId:
+              type: string
+              description: 航路区画のID
+              example: 123e4567-e89b-12d3-a456-426614174000
+
+    NearMissInformationResponse:
+      required:
+        - dataModelType
+        - attributes
+      type: object
+      properties:
+        dataModelType:
+          type: string
+          description: データモデルタイプ
+          enum:
+            - test1
+            - test2
+          example: test1
+        attributes:
+          type: object
+          description: データモデル要素
+          properties:
+            RouteDeviationInfo:
+              type: array
+              description: 航路逸脱情報のリスト
+              items:
+                type: object 
+                properties:
+                  NearMissInformation:
+                    type: object
+                    description: 航路逸脱情報
+                    properties:
+                      routeDeviationRate:
+                        type: number
+                        format: double
+                        minimum: 0
+                        maximum: 100
+                        description: 逸脱割合(%)
+                        example: 5.8
+                      routeDeviationAmount:
+                        type: string
+                        minLength: 1
+                        maxLength: 128
+                        description: 逸脱量(m)
+                        example: "5"
+                    required:
+                    - routeDeviationRate
+                    - routeDeviationAmount
+                  time:
+                    type: string
+                    format: date-time
+                    description: 逸脱検知時刻
+                    example: yyyy-mm-ddTHH:mm:ssZ
+                  airwayAdministratorId:
+                    type: string
+                    description: 航路運営者ID
+                    example: 123e4567-e89b-12d3-a456-426614174000
+                  operatorId:
+                    type: string
+                    description: 運航事業者ID
+                    example: 123e4567-e89b-12d3-a456-426614174000
+                  airwayId:
+                    type: string
+                    description: 航路ID
+                    example: 123e4567-e89b-12d3-a456-426614174000
+                  RouteDeviationDetectionInfo:
+                    type: array
+                    minItems: 1
+                    maxItems: 99
+                    description: 逸脱検知情報のリスト
+                    items:
+                      type: object
+                      description: 航路逸脱検知情報のエンティティ
+                      properties:
+                        airwaySectionId:
+                          type: string
+                          description: 航路区画のID
+                          example: 123e4567-e89b-12d3-a456-426614174000
+                        coodinates:
+                          type: object
+                          description: 逸脱発生地点の座標
+                          properties:
+                            latitude:
+                              type: number
+                              format: double
+                              minimum: -90.0000
+                              maximum: 90.0000
+                              description: 緯度
+                              example: 35.6895
+                            longitude:
+                              type: number
+                              format: double
+                              minimum: -180.0000
+                              maximum: 180.0000
+                              description: 経度
+                              example: 139.6917
+                            aboveGroundLevel:
+                              type: number
+                              minimum: 0
+                              maximum: 150
+                              description: 対地高度
+                              example: 50
+                      required:
+                        - coodinates
+            ThirdPartyEntryMonitoring:
+              type: array
+              description: 第三者立入監視情報のリスト
+              items:
+                type: object
+                properties:
+                  thirdPartyInfo:
+                    type: object
+                    description: 第三者立入監視情報
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - FeatureCollection
+                      features:
+                        type: array
+                        minItems: 1
+                        maxItems: 99
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - feature
+                            geometry:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  description: 種別
+                                  enum:
+                                    - Polygon
+                                coordinates:
+                                  type: array
+                                  description: 座標
+                                  minItems: 1
+                                  maxItems: 99
+                                  items:
+                                    type: array
+                                    minItems: 2
+                                    maxItems: 2
+                                    items:
+                                      type: number
+                                      format: double
+                                      minimum: -180.0000
+                                      maximum: 180.0000
+                            properties:
+                              type: object
+                              properties:
+                                area:
+                                  type: string
+                                  minLength: 1
+                                  maxLength: 64
+                                  description: 監視エリア名
+                                timestamp:
+                                  type: string
+                                  format: date-time
+                                  description: 送信時刻
+                                traffics:
+                                  type: array
+                                  description: 侵入検知対象情報
+                                  items:
+                                    type: object
+                                    properties:
+                                      current_time:
+                                        type: string
+                                        format: date-time
+                                        description: 侵入検知対象がいる時刻
+                                      type:
+                                        type: string
+                                        description: 侵入検知対象の種別
+                                        enum:
+                                          - 車
+                                          - 自転車
+                                          - 人
+                                          - バイク
+                                      count:
+                                        type: integer
+                                        description: 侵入検知対象の検出数
+                                        minimum: 0
+                                        maximum: 100
+                  airwayAdministratorId:
+                    type: string
+                    description: 航路運営者ID
+                  operatorId:
+                    type: string
+                    description: 運航事業者ID
+                  airwayId:
+                    type: string
+                    description: 航路ID
+                  airwaySectionId:
+                    type: string
+                    description: 航路区画のID
+                example:
+                  - thirdPartyInfo:
+                      type: "FeatureCollection"
+                      features:
+                        - type: "feature"
+                          geometry:
+                            type: "Polygon"
+                            coordinates:
+                              [[139.6917, 35.6895], [139.6920, 35.6895], [139.6920, 35.6900], [139.6917, 35.6900], [139.6917, 35.6895]]
+                          properties:
+                            area: "IncidentArea_0"
+                            timestamp: "2024-09-22T12:34:56Z"
+                            traffics:
+                              - current_time: "2024-09-22T12:34:50Z"
+                                type: "車"
+                                count: 2
+                              - current_time: "2024-09-22T12:34:51Z"
+                                type: "人"
+                                count: 3
+                    airwayAdministratorId: "123e4567-e89b-12d3-a456-426614174000"
+                    operatorId: "123e4567-e89b-12d3-a456-426614174000"
+                    airwayId: "123e4567-e89b-12d3-a456-426614174000"
+                    airwaySectionId: "123e4567-e89b-12d3-a456-426614174000"
+                  - thirdPartyInfo:
+                      type: "feature"
+                      geometry:
+                        type: "Polygon"
+                        coordinates:
+                          [[139.6917, 35.6895], [139.6920, 35.6895], [139.6920, 35.6900], [139.6917, 35.6900], [139.6917, 35.6895]]
+                      properties:
+                        area: "IncidentArea_1"
+                        timestamp: "2024-10-22T12:34:56Z"
+                        traffics:
+                          - current_time: "2024-10-22T12:34:50Z"
+                            type: "車"
+                            count: 4
+                          - current_time: "2024-10-22T12:34:51Z"
+                            type: "人"
+                            count: 5
+                    airwayAdministratorId: "123e4567-e89b-12d3-a456-426614174000"
+                    operatorId: "123e4567-e89b-12d3-a456-426614174000"
+                    airwayId: "123e4567-e89b-12d3-a456-426614174000"
+                    airwaySectionId: "123e4567-e89b-12d3-a456-426614174000"
+          required:
+            - RouteDeviationInfo
+            - ThirdPartyEntryMonitoring

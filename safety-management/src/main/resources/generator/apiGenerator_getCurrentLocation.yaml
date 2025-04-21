@@ -1,0 +1,132 @@
+openapi: 3.0.0
+info:
+  title: 安全管理支援(A-1-4) API
+  version: 1.0.0
+tags:
+  - name: DroneLocation
+    description: 安全管理支援(A-1-4)のコントローラクラス。
+paths:
+  /get-current-location/{reservationId}:
+    get:
+      summary: 現在のドローンの位置情報取得
+      description: |
+        航路予約毎の識別 ID に該当するドローンの現在の位置情報を取得する。  
+        この API が実行された時点で、5 秒前まで最新の情報を取得する。  
+      operationId: getCurrentLocation
+      tags:
+        - DroneLocation
+      parameters:
+        - name: reservationId
+          in: path
+          description: 航路予約毎の識別 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 現在のドローンの位置情報
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentLocationEntity"
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  responses:
+    '400':
+      description: 入力チェックエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '404':
+      description: 航路予約 ID が DB に存在しなかった場合、または、5秒前までの情報はなかった場合  
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '500':
+      description: サーバーエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+  schemas:
+    CurrentLocationEntity:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: テレメトリ情報取得日時 ( RFC3339 形式 (yyyy-MM-ddTHH:mm:ss.sssZ) )
+        latitude:
+          type: number
+          description: ドローンの緯度 (degree)
+        longitude:
+          type: number
+          description: ドローンの経度 (degree)
+        aboveGroundLevel:
+          type: integer
+          description: |
+            ドローンの対地高度（m）  
+            不正値の場合あり。その場合は、-1000 を設定する予定。
+        airwayId:
+          type: string
+          description: 航路 ID
+        airwaySectionId:
+          type: string
+          description: 航路区画 ID
+        operationalStatus:
+          type: string
+          description: |
+            ドローンの運航状況。「RouteApproach」「NormalOperation」「RouteDeviation」のいずれか。  
+            RouteApproach・・・航路進入前。まだ飛んでいない場合、航路に一度も入っていない場合。  
+            NormalOperation・・・運航中。一度航路に入った後、逸脱判定によって逸脱していない場合。  
+            RouteDeviation・・・航路逸脱。逸脱している場合、逸脱してポートに向かっている、また、ポートに着陸した場合。  
+        operatorId:
+          type: string
+          description: 運航者 ID
+        uasId:
+          type: string
+          description: |
+            機体の登録 ID  
+            GCS の場合はなし  
+        uaType:
+          type: string
+          description: |
+            ドローンの種別  
+            任意の値のため、UTM・GCS 側で設定されない場合はなし
+        trackDirection:
+          type: integer
+          description: |
+            ドローンの進行方向 (degree)  
+            GCS の場合はなし
+        speed:
+          type: number
+          description: |
+            ドローンの速度 (m/s)  
+            任意の値のため、UTM・GCS 側で設定されない場合はなし  
+        verticalSpeed:
+          type: number
+          description: |
+            ドローンの垂直速度 (m/s)  
+            任意の値のため、UTM・GCS 側で設定されない場合はなし  
+    ErrorResponseEntity:
+      type: object
+      description: エラー時の Response 用 Entity
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "入力チェックエラー"
+        description:
+          type: string
+          description: 詳細
+          example: "0 以上の値にしてください"

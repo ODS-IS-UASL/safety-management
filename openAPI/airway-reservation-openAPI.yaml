@@ -1,0 +1,236 @@
+# prismでmockを起動するコマンド
+# prism mock -p 7001 airway-reservation-openAPI.yaml
+openapi: 3.0.0
+info:
+  title: 航路予約 API
+  version: 1.0.0
+tags:
+  - name: AirwayReservations
+    description: 航路予約 API。
+  - name: notifyConformityAssessmentResult
+    description: 航路予約へ航路の適合性評価結果変更通知
+paths:
+  /airwayReservations/{airwayReservationId}:
+    get:
+      summary: 航路予約情報取得
+      description: 航路予約毎の識別IDをキーに取得した予約情報を返却する。
+      operationId: getAirwayReservations
+      tags:
+        - AirwayReservations
+      parameters:
+        - $ref: "#/components/parameters/airwayReservationId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservations"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestReservations"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundReservations"
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerErrorReservations"
+  /safetyManagement/notifyConformity-AssessmentResult:
+    put:
+      summary: 航路の適合性評価結果変更通知
+      description: >
+        航路の安全管理支援において、航路予約から「航路予約情報の通知 (Subscribe)」によって通知された航路予約情報を元に、
+        予約後から運航開始までの間、適合性評価を定期的に行い、前回の適合性評価結果から変化した場合に、航路予約へ、
+        適合性評価結果(OK/NG)と、NGの場合の理由を通知(Publish)する。
+      operationId: putNotifyConformityAssessmentResult
+      tags:
+        - notifyConformityAssessmentResult
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConformityAssessmentRequest'
+      responses:
+        '204':
+          description: 正常終了
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: リクエストパラメータが無効
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+              example:
+                code: "400"
+                message: "リクエストパラメータが無効です"
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseEntity'
+              example:
+                code: "500"
+                message: "サーバーエラーが発生しました"
+                description: "内部サーバーエラー"
+components:
+  parameters:
+    airwayReservationId:
+      name: airwayReservationId
+      in: path
+      required: true
+      description: 航路予約毎の識別ID
+      schema:
+        type: string
+        example: "123e4567-e89b-12d3-a456-426614174000"
+  schemas:
+    Reservations:
+      type: object
+      required:
+        - airwayReservationId
+        - operatorId
+        - airwaySections
+        - startAt
+        - endAt
+        - reservedAt
+        - updatedAt
+      properties:
+        airwayReservationId:
+          type: string
+          format: uuid
+          minLength: 36
+          maxLength: 36
+          description: 航路予約ID
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        operatorId:
+          type: string
+          format: uuid
+          minLength: 36
+          maxLength: 36
+          description: 運航事業者ID
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        airwaySections:
+          type: array
+          minItems: 1
+          maxItems: 99
+          description: 航路区画予約情報
+          items:
+            type: object
+            required:
+              - airwaySectionId
+              - startAt
+              - endAt
+            properties:
+              airwaySectionId:
+                type: string
+                format: uuid
+                minLength: 36
+                maxLength: 36
+                description: 航路区画ID
+                example: '123e4567-e89b-12d3-a456-426614174000'
+              startAt:
+                type: string
+                format: date-time
+                description: 航路区画毎の予約開始日時
+                example: '2025-01-13T09:00:00Z'
+              endAt:
+                type: string
+                format: date-time
+                description: 航路区画毎の予約終了日時
+                example: '2025-01-13T16:00:00Z'
+        status:
+          type: string
+          enum:
+            - 'RESERVED'
+            - 'CANCELED'
+            - 'RESCINDED'
+          description: 予約ステータス
+          example: 'RESERVED'
+        reservedAt:
+          type: string
+          format: date-time
+          description: 予約完了日時
+          example: '2024-12-13T18:53:38Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: 予約状態更新日時（登録時も更新）
+          example: '2024-12-13T18:53:38Z'
+      example:
+        airwayReservationId: '123e4567-e89b-12d3-a456-426614174000'
+        operatorId: '123e4567-e89b-12d3-a456-426614174000'
+        airwaySections:
+          - airwaySectionId: '123e4567-e89b-12d3-a456-426614174000'
+            startAt: '2025-01-13T09:00:00Z'
+            endAt: '2025-01-13T16:00:00Z'
+          - airwaySectionId: '123e4567-e89b-12d3-a456-426614174001'
+            startAt: '2025-01-14T09:00:00Z'
+            endAt: '2025-01-14T16:00:00Z'
+        status: 'RESERVED'
+        reservedAt: '2024-12-13T18:53:38Z'
+        updatedAt: '2024-12-13T18:53:38Z'
+    BadRequestReservations:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "BAD_REQUEST"
+    NotFoundReservations:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: NOT_FOUND
+    ServerErrorReservations:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: SERVER_ERROR
+    ConformityAssessmentRequest:
+      type: object
+      properties:
+        airwayReservationId:
+          type: string
+          description: 航路予約毎の識別ID
+        evaluationResults:
+          type: string
+          description: 適合性評価結果
+        message:
+          type: string
+          description: 適合性評価結果がNGの場合の詳細。NG時は必須。OK時は不要。
+      example:
+        airwayReservationId: "1"
+        evaluationResults: "NG"
+        message: "天候・風速がNG"
+    ErrorResponseEntity:
+      type: object
+      properties:
+        code:
+          type: string
+          description: エラーコード
+        message:
+          type: string
+          description: エラーメッセージ

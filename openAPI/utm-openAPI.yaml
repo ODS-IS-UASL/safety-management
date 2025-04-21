@@ -1,0 +1,159 @@
+# prismでmockを起動するコマンド
+# prism mock -p 7003 utm-openAPI.yaml
+openapi: '3.0.3'
+info:
+  title: 運航中ドローンの位置情報通知サブスクリプション管理 API
+  version: '0.0.1'
+  description: >-
+    このAPIは、ドローン航路向けのテレメトリ情報通知サブスクリプションを管理します。
+servers:
+  - url: https://uss-example.com:8080/USS
+    description: 本番用環境（仮）
+tags:
+  - name: Subscription
+    description: テレメトリ情報通知用サブスクリプションの管理
+paths:
+  /api/v1/dronehighway/subscription:
+    post:
+      summary: テレメトリ情報通知用サブスクリプション登録
+      description: >-
+        テレメトリ情報通知用サブスクリプション登録
+      tags:
+        - Subscription
+      operationId: createDroneHighwaySubscription
+      requestBody:
+        description: テレメトリ情報通知用サブスクリプション登録リクエスト
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscription'
+      responses:
+        '201':
+          description: 登録成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_subscription_response'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '413':
+          $ref: '#/components/responses/413'
+        '429':
+          $ref: '#/components/responses/429'
+    delete:
+      summary: テレメトリ情報通知用サブスクリプション削除
+      description: >-
+        テレメトリ情報通知用サブスクリプション削除
+      tags:
+        - Subscription
+      operationId: deleteDroneHighwaySubscription
+      parameters:
+        - $ref: "#/components/parameters/subscription_id"
+      responses:
+        '200':
+          description: 削除成功
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+components:
+  parameters:
+    subscription_id:
+      name: subscription_id
+      in: path
+      description: サブスクリプションID
+      required: true
+      schema:
+        type: string
+  responses:
+    '400':
+      description: リクエストの形式が不正
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_response'
+    '401':
+      description: 認証エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_response'
+    '403':
+      description: 権限がない場合
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_response'
+    '413':
+      description: view に指定された範囲が広すぎる場合
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_response'
+    '429':
+      description: 同じエリア内に登録できるサブスクリプションの上限数を超えた場合
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_response'
+  schemas:
+    create_subscription_response:
+      type: object
+      properties:
+        message:
+          type: string
+          example: OK
+        subscription_id:
+          type: string
+          description: UTM側で払い出したUUID。
+          example: 107b9fa7-93a9-4454-b4fb-270fadef2f0e
+    error_response:
+      type: object
+      properties:
+        code:
+          type: string
+          description: エラーコード。システム内の任意のコードを設定する
+          example: ERR1001
+        message:
+          type: string
+          description: エラーメッセージ。ユーザに表示するメッセージを設定する
+          example: 不正なリクエストです。
+    subscription:
+      description: サブスクリプション
+      type: object
+      properties:
+        subscription_name:
+          type: string
+          example: ドローン航路システムのサブスクリプション
+          description: サブスクリプション名
+        view:
+          type: array
+          items:
+            type: number
+            example: [43.0438307, 141.3529869, 43.0462020, 141.3564321]
+          description: 監視対象エリアを表す bounding box（境界ボックス）。</br>配列の形式は[南西緯度, 南西経度, 北東緯度, 北東経度]。</br>指定された範囲の0～150m（標高）の空域を監視します。</br>bboxの2点間の距離は7km以内を指定してください。
+        time_start:
+          type: string
+          example: "2022-10-10T18:00:00Z"
+          description: サブスクリプション開始日時(RFC3339形式)。
+        time_end:
+          type: string
+          example: "2022-10-10T18:00:00Z"
+          description: サブスクリプション終了日時(RFC3339形式)。</br>※制限事項：将来的には24時間以上を指定可能としますが、現状はDSSの制限により開始日時から24時間未満の範囲が有効です。
+        is_unlimited:
+          type: boolean
+          example: false
+          description: サブスクリプションの無期限オプション。</br>※制限事項：将来対応予定です。
+        drone_highway_base_url:
+          type: string
+          example: "https://example.com/notification"
+          description: >-
+            このサブスクリプションを通知するドローン航路システムのベースURL。</br>
+            ドローン航路システムが実装するAPI（例えば/drone-highway/safety-management/drone-location-notification）を実施します。</br>
+            従って、このURLには末尾に'/'文字を含めないでください。

@@ -1,0 +1,59 @@
+plugins {
+  id 'java'
+  id 'jacoco'
+  id 'war'
+  id 'application'
+}
+
+application {
+  mainClass = 'com.intent_exchange.drone_highway.DroneHighwayApplication'
+}
+
+bootJar {
+  enabled = true
+}
+
+bootWar {
+  enabled = true
+}
+
+openApiGenerate {
+  generatorName = "spring"
+  configFile = "$projectDir/src/main/resources/generator/apiGeneratorConfig.json"
+  inputSpec = "$projectDir/src/main/resources/generator/apiGenerator.yaml"
+  outputDir = "$buildDir/generated"
+  templateDir = "$projectDir/src/main/resources/generator/templates"
+  apiPackage = "com.intent_exchange.drone_highway.api"
+  modelPackage = "com.intent_exchange.drone_highway.entity"
+}
+
+task generateApi {
+  dependsOn openApiGenerate
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs "$buildDir/generated/src/main/java"
+   }
+  }
+}
+
+// ライセンスレポートのタスク設定
+import com.github.jk1.license.filter.*
+import com.github.jk1.license.render.*
+
+licenseReport {
+  filters = [new LicenseBundleNormalizer(bundlePath: "$projectDir/license-normalizer-bundle.json")]
+  renderers = [new InventoryHtmlReportRenderer()]
+}
+
+spotbugsMain {
+  reports {
+    html {
+      required = true
+      outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+      jvmArgs = ['-Duser.language=ja']
+    }
+  }
+}

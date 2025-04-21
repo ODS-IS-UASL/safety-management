@@ -1,0 +1,202 @@
+plugins {
+  id 'java'
+  id 'jacoco'
+  id 'org.springframework.boot' version '3.3.4' apply false
+  id 'io.spring.dependency-management' version '1.1.7' apply false
+  id 'org.openapi.generator' version '7.8.0' apply false
+  id 'org.asciidoctor.jvm.convert' version '3.3.2' apply false
+  id 'com.github.jk1.dependency-license-report' version '2.9' apply false
+  id "com.github.spotbugs" version "6.1.1" apply false
+  id 'war'
+  id 'application' 
+}
+
+allprojects {
+  group = 'com.intent_exchange'
+  version = '0.0.1'
+}
+
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'jacoco'
+  apply plugin: 'org.springframework.boot'
+  apply plugin: 'io.spring.dependency-management'
+  apply plugin: 'org.openapi.generator'
+  apply plugin: 'org.asciidoctor.jvm.convert'
+  apply plugin: 'com.github.jk1.dependency-license-report'
+  apply plugin: 'com.github.spotbugs'
+  apply plugin: 'war'
+  apply plugin: 'application' 
+
+  defaultTasks 'clean', 'build', 'test'
+
+  java {
+    toolchain {
+      languageVersion = JavaLanguageVersion.of(21)
+    }
+  }
+
+  tasks.withType(JavaCompile) {options.encoding = 'UTF-8'}
+  tasks.withType(Javadoc) {options.encoding = 'UTF-8'}
+  tasks.withType(Test) {systemProperty 'file.encoding', 'UTF-8'}
+
+
+  bootJar {
+    enabled = false
+  }
+
+  bootWar {
+    enabled = false
+  }
+
+  configurations {
+    compileOnly {
+      extendsFrom annotationProcessor
+    }
+  }
+
+  repositories {
+    mavenCentral()
+  }
+  
+  ext {
+    springfox_version = "3.0.0"
+    servlet_version = "4.0.1"
+    aspectj_version = "1.9.19"
+    mybatis_version = "3.0.3"
+    modelmapper_version = "3.1.1"
+    httpcomponent_version = "4.5.14"
+    httpcomponent5_version = "5.2.1"
+    postgresql_version = "42.6.0"
+    jackson_version = "2.15.0"
+    openapitools_version = "0.2.1"
+    validation_version = "2.0.1.Final"
+    annotation_version = "1.3.2"
+    jsr250_version = "1.0"
+    swagger_version = "2.2.8"
+    mybatis_generator_version = "1.4.2"
+    lombok_version = "1.18.30"
+    opencsv_version = "5.5.2"
+    mqtt_version = "1.2.5"
+  }
+
+  dependencies {
+    //  セキュリティ関係
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "org.springframework.boot:spring-boot-starter-aop"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+
+    // session関連
+    implementation "io.springfox:springfox-boot-starter:$springfox_version"
+    implementation "io.springfox:springfox-swagger2:$springfox_version"
+    implementation "io.springfox:springfox-swagger-ui:$springfox_version"
+    implementation "javax.servlet:javax.servlet-api:$servlet_version"
+    implementation "org.aspectj:aspectjrt:$aspectj_version"
+    implementation "org.aspectj:aspectjweaver:$aspectj_version"
+    implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatis_version"
+    implementation "org.modelmapper:modelmapper:$modelmapper_version"
+    implementation "org.apache.httpcomponents:httpclient:$httpcomponent_version"
+    implementation "org.apache.httpcomponents.core5:httpcore5:$httpcomponent5_version"
+    implementation "org.apache.httpcomponents.client5:httpclient5:$httpcomponent5_version"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    implementation "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+    implementation "org.openapitools:jackson-databind-nullable:$openapitools_version"
+    implementation "javax.validation:validation-api:$validation_version"
+    implementation "javax.annotation:javax.annotation-api:$annotation_version"
+    implementation "javax.annotation:jsr250-api:$jsr250_version"
+    implementation "io.swagger.core.v3:swagger-annotations:$swagger_version"
+    // MyBatisとPostgreSQL
+    implementation "org.postgresql:postgresql:$postgresql_version"
+    implementation "org.mybatis.generator:mybatis-generator-core:$mybatis_generator_version"
+    implementation "com.itfsw:mybatis-generator-plugin:$mybatis_generator_version"
+    // OpenCSV
+    implementation "com.opencsv:opencsv:$opencsv_version"
+    // MQTT
+    implementation "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$mqtt_version"
+
+    developmentOnly "org.springframework.boot:spring-boot-devtools"
+    runtimeOnly "org.postgresql:postgresql"
+    compileOnly "org.projectlombok:lombok:$lombok_version"
+    annotationProcessor "org.projectlombok:lombok:$lombok_version"
+    testCompileOnly "org.projectlombok:lombok:$lombok_version"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombok_version"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.boot:spring-boot-testcontainers"
+    testImplementation "org.mybatis.spring.boot:mybatis-spring-boot-starter-test:$mybatis_version"
+    testImplementation "org.springframework.restdocs:spring-restdocs-mockmvc"
+    //  セキュリティ関係
+    testImplementation "org.testcontainers:junit-jupiter"
+    testImplementation "org.testcontainers:postgresql"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation 'com.github.springtestdbunit:spring-test-dbunit:1.3.0'
+    testImplementation 'org.dbunit:dbunit:2.7.0'
+    testImplementation 'org.springframework:spring-test' 
+  }  
+
+  configurations {
+    compileOnly {
+      extendsFrom annotationProcessor
+    }
+  }
+  
+  tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-parameters']
+    options.annotationProcessorPath = configurations.annotationProcessor
+  }
+  // 出力先の構築タスクに合わせてライセンスレポートのタスクも実行
+  assemble.finalizedBy generateLicenseReport
+
+  // カバレッジレポートの設定
+  build.dependsOn jacocoTestReport  
+  
+  jacocoTestReport {
+    dependsOn test
+    reports {
+      xml.required = true
+      html.required = true
+    }
+    // カバレッジ取得対象外とするパスを追加
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                // Entity
+                "com/intent_exchange/drone_highway/entity/*",
+                // Model
+                "com/intent_exchange/drone_highway/model/*",
+                // DTO
+                "com/intent_exchange/drone_highway/dto/*",
+                // dao
+                "com/intent_exchange/drone_highway/dao/*",
+                // datasource
+                "com/intent_exchange/drone_highway/datasource/*"
+            ])
+        }))
+    }
+  }  
+
+  test {
+    // JUnit platform を使う設定 (JUnit5の設定)
+    useJUnitPlatform()
+
+    testLogging {
+      // テスト時の標準出力と標準エラー出力を表示する
+      // showStandardStreams true
+      // イベントを出力する (TestLogEvent)
+      events 'started', 'skipped', 'passed', 'failed'
+      // 例外発生時の出力設定 (TestExceptionFormat)
+      exceptionFormat 'full'
+    }
+    //ignoreFailures = true
+
+    // テストタスクに合わせてカバレッジレポートのタスクも実行
+    finalizedBy jacocoTestReport
+  }
+  
+  spotbugs {
+    ignoreFailures = true
+  }    
+}
