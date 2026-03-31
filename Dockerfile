@@ -1,6 +1,6 @@
 ARG TARGET_APP=safety-management
 ARG VERSION=0.0.1
-ARG ENV_TYPE=prod 
+ARG ENV_TYPE=dev
 
 # ビルドステージ
 FROM gradle:8.10.2-jdk21-alpine AS builder
@@ -28,7 +28,9 @@ RUN mv /home/gradle/${TARGET_APP}/src/main/resources/system_${ENV_TYPE}.properti
 RUN gradle :${TARGET_APP}:bootwar --no-daemon 
 
 # 実行ステージ
-FROM eclipse-temurin:21-jre-jammy 
+FROM eclipse-temurin:21-jre-jammy
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get -y upgrade && rm -rf /var/lib/apt/lists/*
 ARG TARGET_APP
 ARG VERSION
 

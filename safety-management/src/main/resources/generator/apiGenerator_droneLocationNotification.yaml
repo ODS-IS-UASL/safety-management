@@ -1,15 +1,15 @@
 openapi: 3.0.0
 info:
-  title: 安全管理支援(A-1-4) API
+  title: 安全管理支援(SafetyManagement) API
   version: 1.0.0
 tags:
   - name: DroneLocation
-    description: 安全管理支援(A-1-4)のコントローラクラス。
+    description: 安全管理支援(SafetyManagement)のコントローラクラス。
 paths:
   /drone-location-notification:
     post:
       summary: 運行中ドローンの位置情報の通知
-      description: 指定されたエリア内のドローンのテレメトリ情報を USS から航路の安全管理 (A-1-4) へ指定されたエンドポイントに通知する。
+      description: 指定されたエリア内のドローンのテレメトリ情報を USS から航路の安全管理 (SafetyManagement) へ指定されたエンドポイントに通知する。
       operationId: notifyDroneLocation
       tags:
         - DroneLocation
@@ -30,7 +30,7 @@ components:
       properties:
         subscriptionId:
           type: string
-          description: USS が航路の安全管理 (A-1-4) に通知するためのエリア情報のサブスクリプション ID。
+          description: USS が航路の安全管理 (SafetyManagement) に通知するためのエリア情報のサブスクリプション ID。
         reservationId:
           type: string
           description: 航路の予約 ID。

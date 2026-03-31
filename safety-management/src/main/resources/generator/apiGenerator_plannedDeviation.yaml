@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: 安全管理支援(SafetyManagement) API
+  version: 1.0.0
+tags:
+  - name: PlannedDeviation
+    description: 計画的な航路逸脱の設定
+paths:
+  /planned-deviation/{reservationId}:
+    get:
+      summary: 計画的な航路逸脱の設定状態取得
+      description: 計画的な航路逸脱の設定状態を取得する。
+      operationId: getPlannedDeviation
+      tags:
+        - PlannedDeviation
+      parameters:
+        - name: reservationId
+          in: path
+          description: 航路予約毎の識別ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 正常終了
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlannedDeviationEntity"
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    put:
+      summary: 計画的な航路逸脱の設定
+      description: 指定した航路予約毎の識別IDに対応する予約情報の「計画した航路逸脱」を変更する。
+      operationId: setPlannedDeviation
+      tags:
+        - PlannedDeviation
+      parameters:
+        - name: reservationId
+          in: path
+          description: 航路予約毎の識別ID
+          required: true
+          schema:
+            type: string
+        - name: enabled
+          in: query
+          description: |
+            計画的な航路逸脱の指示。
+            - true: 計画的な逸脱として扱う
+            - false: 通常の逸脱として扱う
+          required: true
+          schema:
+            type: boolean
+            example: true
+      responses:
+        '204':
+          description: 正常終了
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  responses:
+    '400':
+      description: 入力チェックエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '404':
+      description: 航路予約IDがDBに存在しなかった場合
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '500':
+      description: サーバーエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+  schemas:
+    PlannedDeviationEntity:
+      type: object
+      description: 計画的な航路逸脱の設定情報
+      properties:
+        enabled:
+          type: boolean
+          example: true
+          description: |
+            計画的な航路逸脱の指示。
+            - true: 計画的な逸脱として扱う
+            - false: 通常の逸脱として扱う
+      required:
+        - enabled
+    ErrorResponseEntity:
+      type: object
+      description: エラー時のResponse用Entity
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "入力チェックエラー"
+        description:
+          type: string
+          description: 詳細
+          example: "0以上の値にしてください"

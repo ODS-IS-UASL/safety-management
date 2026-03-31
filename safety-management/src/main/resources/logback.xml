@@ -32,7 +32,7 @@
 	<!-- <logger name="appLogger" level="INFO" additivity="false"> -->
 	<!-- <appender-ref ref="APPLIATION_LOG" /> -->
 	<!-- </logger> -->
-	<logger name="com.intent_exchange.drone_highway" level="DEBUG"
+	<logger name="com.intent_exchange.uasl" level="DEBUG"
 		additivity="false">
 		<appender-ref ref="STDOUT" />
 	</logger>

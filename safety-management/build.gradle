@@ -6,7 +6,7 @@ plugins {
 }
 
 application {
-  mainClass = 'com.intent_exchange.drone_highway.DroneHighwayApplication'
+  mainClass = 'com.intent_exchange.uasl.UaslApplication'
 }
 
 bootJar {
@@ -23,8 +23,8 @@ openApiGenerate {
   inputSpec = "$projectDir/src/main/resources/generator/apiGenerator.yaml"
   outputDir = "$buildDir/generated"
   templateDir = "$projectDir/src/main/resources/generator/templates"
-  apiPackage = "com.intent_exchange.drone_highway.api"
-  modelPackage = "com.intent_exchange.drone_highway.entity"
+  apiPackage = "com.intent_exchange.uasl.api"
+  modelPackage = "com.intent_exchange.uasl.entity"
 }
 
 task generateApi {

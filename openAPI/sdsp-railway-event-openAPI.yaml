@@ -1,5 +1,5 @@
 # prismでmockを起動するコマンド
-# prism mock -p 7004 sdsp-railway-event-openAPI.yaml
+# prism mock -p 7001 sdsp-railway-event-openAPI.yaml
 openapi: 3.0.0
 info:
   title: SDSP(空域デジタルツイン) API
@@ -159,6 +159,66 @@ components:
     RestrictedAirSpaceResponseEntity:
       type: object
       description: 正常応答時のレスポンス用エンティティ
+      properties:
+        restrictedAirSpace:
+          type: array
+          description: |
+            規制空域の情報
+            ※該当する空域がない場合は空配列になる
+          items:
+            type: object
+            description: 個々の規制空域の情報
+            properties:
+              airSpace:
+                type: array
+                description: 規制空域の範囲を示すPolygon
+                items:
+                  type: array
+                  description: 経度, 緯度
+                  items:
+                    type: number
+                  example: [139.05047486965475, 35.94850564653847]
+                example: [
+                  [139.05047486965475, 35.94850564653847],
+                  [139.05079314020497, 35.94753023487624],
+                  [139.05189572032526, 35.94778789195730],
+                  [139.05223672448620, 35.94853325235369],
+                  [139.05047486965475, 35.94850564653847]
+                ]
+              timeScope:
+                type: array
+                description: 規制日時の範囲(UTC)
+                items:
+                  type: string
+                example: ["2025-01-10T01:00:00Z", "2025-01-10T03:00:00Z"]
+              description:
+                type: string
+                description: 規制の情報
+                example: "航空イベントによる規制1"
+          example: [
+            {
+              "airSpace": [
+                  [139.05047486965475, 35.94850564653847],
+                  [139.05079314020497, 35.94753023487624],
+                  [139.05189572032526, 35.94778789195730],
+                  [139.05223672448620, 35.94853325235369],
+                  [139.05047486965475, 35.94850564653847]
+                ],
+              "timeScope": ["2025-01-10T01:00:00Z", "2025-01-10T03:00:00Z"],
+              "description": "航空イベントによる規制1"
+            },
+            {
+              "airSpace": [
+                  [139.05530576193448, 35.94875409852818],
+                  [139.05603323747775, 35.94769587166767],
+                  [139.05760185661802, 35.94819277995857], 
+                  [139.05607870469922, 35.94946264250402],
+                  [139.05530576193448, 35.94875409852818]
+                ],
+              "timeScope": ["2025-01-10T01:00:00Z", "2025-01-10T03:00:00Z"],
+              "description": "航空イベントによる規制2"
+            } 
+          ]
     RegularDiagramResponseEntity:
       type: object
       description: 鉄道運行情報の正常応答時のレスポンス用エンティティ
@@ -172,12 +232,14 @@ components:
               type: string
             example: ["11:08", "11:11"]
           example: [
+            ["11:08", "11:11"],
+            ["11:24", "11:27"]
           ]
     RelativePositionRequestEntity:
       type: object
       description: 相対位置特定のリクエストボディ用エンティティ
       properties:
-        fallToleranceRange:
+        maxFallRange:
           type: array
           description: 最大落下許容範囲を示すPolygon
           items:

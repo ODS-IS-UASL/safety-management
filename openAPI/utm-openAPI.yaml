@@ -1,5 +1,5 @@
 # prismでmockを起動するコマンド
-# prism mock -p 7003 utm-openAPI.yaml
+# prism mock -p 7001 utm_openAPI.yaml
 openapi: '3.0.3'
 info:
   title: 運航中ドローンの位置情報通知サブスクリプション管理 API
@@ -13,14 +13,14 @@ tags:
   - name: Subscription
     description: テレメトリ情報通知用サブスクリプションの管理
 paths:
-  /api/v1/dronehighway/subscription:
+  /api/v1/uasl/subscription:
     post:
       summary: テレメトリ情報通知用サブスクリプション登録
       description: >-
         テレメトリ情報通知用サブスクリプション登録
       tags:
         - Subscription
-      operationId: createDroneHighwaySubscription
+      operationId: createUaslSubscription
       requestBody:
         description: テレメトリ情報通知用サブスクリプション登録リクエスト
         content:
@@ -44,13 +44,14 @@ paths:
           $ref: '#/components/responses/413'
         '429':
           $ref: '#/components/responses/429'
+  /api/v1/uasl/subscription/{subscription_id}:
     delete:
       summary: テレメトリ情報通知用サブスクリプション削除
       description: >-
         テレメトリ情報通知用サブスクリプション削除
       tags:
         - Subscription
-      operationId: deleteDroneHighwaySubscription
+      operationId: deleteUaslSubscription
       parameters:
         - $ref: "#/components/parameters/subscription_id"
       responses:
@@ -150,10 +151,10 @@ components:
           type: boolean
           example: false
           description: サブスクリプションの無期限オプション。</br>※制限事項：将来対応予定です。
-        drone_highway_base_url:
+        uasl_base_url:
           type: string
           example: "https://example.com/notification"
           description: >-
             このサブスクリプションを通知するドローン航路システムのベースURL。</br>
-            ドローン航路システムが実装するAPI（例えば/drone-highway/safety-management/drone-location-notification）を実施します。</br>
+            ドローン航路システムが実装するAPI（例えば/uasl/safety-management/drone-location-notification）を実施します。</br>
             従って、このURLには末尾に'/'文字を含めないでください。

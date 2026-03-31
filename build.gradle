@@ -1,9 +1,9 @@
 plugins {
   id 'java'
   id 'jacoco'
-  id 'org.springframework.boot' version '3.3.4' apply false
+  id 'org.springframework.boot' version '3.5.11' apply false
   id 'io.spring.dependency-management' version '1.1.7' apply false
-  id 'org.openapi.generator' version '7.8.0' apply false
+  id 'org.openapi.generator' version '7.20.0' apply false
   id 'org.asciidoctor.jvm.convert' version '3.3.2' apply false
   id 'com.github.jk1.dependency-license-report' version '2.9' apply false
   id "com.github.spotbugs" version "6.1.1" apply false
@@ -65,9 +65,9 @@ subprojects {
     aspectj_version = "1.9.19"
     mybatis_version = "3.0.3"
     modelmapper_version = "3.1.1"
-    httpcomponent_version = "4.5.14"
-    httpcomponent5_version = "5.2.1"
-    postgresql_version = "42.6.0"
+    httpclient5_version = "5.5.1"
+    httpcore5_version = "5.3.6"
+    postgresql_version = "42.7.8"
     jackson_version = "2.15.0"
     openapitools_version = "0.2.1"
     validation_version = "2.0.1.Final"
@@ -76,8 +76,10 @@ subprojects {
     swagger_version = "2.2.8"
     mybatis_generator_version = "1.4.2"
     lombok_version = "1.18.30"
-    opencsv_version = "5.5.2"
+    opencsv_version = "5.12.0"
     mqtt_version = "1.2.5"
+    testcontainers_version = "2.0.2"
+    classgraph_version = "4.8.184"
   }
 
   dependencies {
@@ -97,9 +99,8 @@ subprojects {
     implementation "org.aspectj:aspectjweaver:$aspectj_version"
     implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatis_version"
     implementation "org.modelmapper:modelmapper:$modelmapper_version"
-    implementation "org.apache.httpcomponents:httpclient:$httpcomponent_version"
-    implementation "org.apache.httpcomponents.core5:httpcore5:$httpcomponent5_version"
-    implementation "org.apache.httpcomponents.client5:httpclient5:$httpcomponent5_version"
+    implementation "org.apache.httpcomponents.core5:httpcore5:$httpcore5_version"
+    implementation "org.apache.httpcomponents.client5:httpclient5:$httpclient5_version"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
     implementation "com.fasterxml.jackson.core:jackson-core:$jackson_version"
     implementation "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
@@ -111,11 +112,14 @@ subprojects {
     // MyBatisとPostgreSQL
     implementation "org.postgresql:postgresql:$postgresql_version"
     implementation "org.mybatis.generator:mybatis-generator-core:$mybatis_generator_version"
-    implementation "com.itfsw:mybatis-generator-plugin:$mybatis_generator_version"
+    // mybatis-generator-pluginはdom4jの1.6.1（脆弱性：高）を含むため、コメントアウトする。mybatis-generatorによる自動生成をする際にコメント解除して利用する。将来対応:別コンフィグ対応。
+    //implementation "com.itfsw:mybatis-generator-plugin:$mybatis_generator_version"
     // OpenCSV
     implementation "com.opencsv:opencsv:$opencsv_version"
     // MQTT
     implementation "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$mqtt_version"
+    // Classgraph
+    implementation "io.github.classgraph:classgraph:$classgraph_version"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
     runtimeOnly "org.postgresql:postgresql"
@@ -128,11 +132,12 @@ subprojects {
     testImplementation "org.mybatis.spring.boot:mybatis-spring-boot-starter-test:$mybatis_version"
     testImplementation "org.springframework.restdocs:spring-restdocs-mockmvc"
     //  セキュリティ関係
+    testImplementation "org.testcontainers:testcontainers:$testcontainers_version"
     testImplementation "org.testcontainers:junit-jupiter"
     testImplementation "org.testcontainers:postgresql"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     testImplementation 'com.github.springtestdbunit:spring-test-dbunit:1.3.0'
-    testImplementation 'org.dbunit:dbunit:2.7.0'
+    testImplementation 'org.dbunit:dbunit:2.7.1'
     testImplementation 'org.springframework:spring-test' 
   }  
 
@@ -164,15 +169,15 @@ subprojects {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
                 // Entity
-                "com/intent_exchange/drone_highway/entity/*",
+                "com/intent_exchange/uasl/entity/*",
                 // Model
-                "com/intent_exchange/drone_highway/model/*",
+                "com/intent_exchange/uasl/model/*",
                 // DTO
-                "com/intent_exchange/drone_highway/dto/*",
+                "com/intent_exchange/uasl/dto/*",
                 // dao
-                "com/intent_exchange/drone_highway/dao/*",
+                "com/intent_exchange/uasl/dao/*",
                 // datasource
-                "com/intent_exchange/drone_highway/datasource/*"
+                "com/intent_exchange/uasl/datasource/*"
             ])
         }))
     }

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <!-- ★1 各環境に合わせてドライバを格納しているパスを設定 パスに全角文字があるとダメっぽい -->
+    <!-- <classPathEntry location="C:\lib\postgresql-42.5.0.jar" /> -->
+
+    <context id="context1" targetRuntime="MyBatis3">
+        <!-- プロパティの設定 -->
+        <property name="javaFileEncoding" value="UTF-8" />
+
+        <!-- プラグインの設定 -->
+        <plugin type="com.itfsw.mybatis.generator.plugins.OptimisticLockerPlugin">
+            <property name="customizedNextVersion" value="false" />
+        </plugin>
+        <plugin type="com.itfsw.mybatis.generator.plugins.LombokPlugin">
+            <property name="@Data" value="true" />
+            <property name="@Builder" value="false" />
+            <property name="@AllArgsConstructor" value="false" />
+            <property name="@NoArgsConstructor" value="false" />
+            <property name="@Accessors(chain = true)" value="false" />
+            <property name="supportSuperBuilderForIdea" value="false" />
+        </plugin>
+        <plugin type="com.itfsw.mybatis.generator.plugins.MapperAnnotationPlugin">
+            <property name="@Mapper" value="true" />
+            <property name="@Repository" value="true" />
+        </plugin>
+        <plugin type="org.mybatis.generator.plugins.UnmergeableXmlMappersPlugin" />
+        <plugin type="org.mybatis.generator.plugins.RowBoundsPlugin" />
+        <plugin type="org.mybatis.generator.plugins.SerializablePlugin" />
+
+        <!-- コメントジェネレータの設定 -->
+        <commentGenerator type="com.intent_exchange.uasl.dao.config.CustomCommentGenerator">
+            <property name="suppressDate" value="true" />
+        </commentGenerator>
+
+        <!-- JDBC接続の設定 -->
+        <jdbcConnection driverClass="org.postgresql.Driver"
+            connectionURL="jdbc:postgresql://localhost:5432/postgres"
+            userId="safety_management" password="safety_management" />
+
+        <!-- Java型リゾルバの設定 -->
+        <javaTypeResolver type="com.intent_exchange.uasl.dao.config.CustomJavaTypeResolver">
+            <property name="useJSR310Types" value="true" />
+        </javaTypeResolver>
+
+        <!-- Javaモデルジェネレータの設定 -->
+        <javaModelGenerator targetPackage="com.intent_exchange.uasl.model"
+            targetProject="safety-management/src/main/java" />
+
+        <!-- SQLマップジェネレータの設定 -->
+        <sqlMapGenerator targetPackage="com.intent_exchange.uasl.dao"
+            targetProject="safety-management/src/main/resources" />
+
+        <!-- Javaクライアントジェネレータの設定 -->
+        <javaClientGenerator targetPackage="com.intent_exchange.uasl.dao"
+            targetProject="safety-management/src/main/java" type="XMLMAPPER" />
+
+        <!-- テーブルの設定 -->
+        <table tableName="t_uasl_deviation" domainObjectName="UaslDeviation"
+            enableInsert="true" enableSelectByPrimaryKey="true"
+            enableUpdateByPrimaryKey="false" enableDeleteByPrimaryKey="false"
+            enableSelectByExample="false" enableUpdateByExample="false"
+            enableDeleteByExample="false" enableCountByExample="false"
+            selectByPrimaryKeyQueryId="false" selectByExampleQueryId="false"
+            modelType="flat">
+            <columnOverride column="uasl_reservation_id" javaType="java.lang.String"/>
+            <columnOverride column="route_deviation_rate" javaType="java.lang.Double"/>
+            <columnOverride column="route_deviation_amount" javaType="java.lang.String"/>
+            <columnOverride column="route_deviation_time" javaType="java.lang.String"/>
+            <columnOverride column="uasl_administrator_id" javaType="java.lang.String"/>
+            <columnOverride column="operator_id" javaType="java.lang.String"/>
+            <columnOverride column="uasl_id" javaType="java.lang.String"/>
+            <columnOverride column="ua_type" javaType="java.lang.String"/>
+            <columnOverride column="route_deviation_coordinates" javaType="java.lang.String"/>
+        </table>
+    </context>
+</generatorConfiguration>

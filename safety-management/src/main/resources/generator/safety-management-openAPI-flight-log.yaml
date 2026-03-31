@@ -1,0 +1,355 @@
+openapi: 3.0.0
+info:
+  title: 安全管理支援(SafetyManagement) API
+  version: 1.0.0
+tags:
+  - name: flight-logs
+    description: フライトログ
+paths:
+  /flight-logs:
+    get:
+      tags:
+        - flight-logs
+      summary: フライトログ取得API
+      operationId: getFlightLogs
+      description: |
+        安全管理の運行情報蓄積テーブルから、指定された条件に基づいて運航履歴データを検索します。
+        時刻はUTCです。
+        
+        **必須パラメータ:**
+        - startTime: 検索開始時刻（ISO 8601形式）
+        - endTime: 検索終了時刻（ISO 8601形式）
+        
+        **オプションパラメータ:**
+        - reservationId: 特定の航路予約IDで絞り込み
+        - uaslId: 特定の航路IDで絞り込み
+        - operatorId: 特定の運航者IDで絞り込み
+        - aircraftInfoId: 特定の機体情報IDで絞り込み
+        - uaType: 機体種別で絞り込み
+        
+        **注意事項:**
+        - 検索期間は最大31日間まで指定可能です
+        - データは取得日時の降順（最新から古い順）で返却されます
+      parameters:
+        - name: startTime
+          in: query
+          required: true
+          description: |
+            検索開始時刻（ISO 8601形式: YYYY-MM-DDTHH:mm:ss.SSSZ）
+            指定された時刻以降のデータを取得します。
+          schema:
+            type: string
+            format: date-time
+            example: '2025-11-01T00:00:00.000Z'
+        - name: endTime
+          in: query
+          required: true
+          description: |
+            検索終了時刻（ISO 8601形式: YYYY-MM-DDTHH:mm:ss.SSSZ）
+            指定された時刻以前のデータを取得します。
+          schema:
+            type: string
+            format: date-time
+            example: '2025-11-30T23:59:59.999Z'
+        - name: reservationId
+          in: query
+          required: false
+          description: 航路予約ID（完全一致検索）
+          schema:
+            type: string
+            maxLength: 255
+            example: 'RES20251127001'
+        - name: uaslId
+          in: query
+          required: false
+          description: 航路ID（完全一致検索）
+          schema:
+            type: string
+            maxLength: 255
+            example: 'UASL001'
+        - name: operatorId
+          in: query
+          required: false
+          description: 運航者ID（完全一致検索）
+          schema:
+            type: string
+            maxLength: 255
+            example: 'OP12345'
+        - name: aircraftInfoId
+          in: query
+          required: false
+          description: 機体情報ID（完全一致検索）
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 9999
+            example: 10
+        - name: uaType
+          in: query
+          required: false
+          description: 機体種別（完全一致検索）
+          schema:
+            type: string
+            maxLength: 255
+            example: 'multirotor'
+      responses:
+        '200':
+          description: 検索成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightLogListResponse'
+              examples:
+                normalOperation:
+                  summary: 正常運航の例
+                  value:
+                    flightLogs:
+                      - subscriptionId: 'SUB001'
+                        aircraftInfoId: 10
+                        uaType: 'multirotor'
+                        getLocationTimestamp: '2025-11-27T10:30:45.000Z'
+                        latitude: 35.6812
+                        longitude: 139.7671
+                        altitude: 50
+                        trackDirection: 90
+                        speed: 10.5
+                        verticalSpeed: 0.5
+                        routeDeviationRate: 0.0
+                        routeDeviationRateUpdateTime: '2025-11-27T10:30:45.000Z'
+                        reservationId: 'RES20251127001'
+                        uaslId: 'UASL001'
+                        uaslSectionId: 'SEC001'
+                        operationalStatus: 'NormalOperation'
+                        operatorId: 'OP12345'
+                        flightTime: '00:15:30.000'
+                        uasId:
+                          serialNumber: 'SN123456789'
+                          registrationId: 'JA.123456'
+                          utmId: 'UTM001'
+                          specificSessionId: '12345678901234567890'
+                    totalCount: 1
+                routeDeviation:
+                  summary: 航路逸脱の例
+                  value:
+                    flightLogs:
+                      - subscriptionId: 'SUB002'
+                        aircraftInfoId: 10
+                        uaType: 'multirotor'
+                        getLocationTimestamp: '2025-11-27T14:25:10.000Z'
+                        latitude: 35.6850
+                        longitude: 139.7700
+                        altitude: 55
+                        trackDirection: 120
+                        speed: 12.3
+                        verticalSpeed: -0.3
+                        routeDeviationRate: 1.0
+                        routeDeviationRateUpdateTime: '2025-11-27T14:25:10.000Z'
+                        reservationId: 'RES20251127002'
+                        uaslId: 'UASL002'
+                        uaslSectionId: 'SEC005'
+                        operationalStatus: 'RouteDeviation'
+                        operatorId: 'OP67890'
+                        flightTime: '00:08:45.000'
+                        uasId:
+                          serialNumber: 'SN123456789'
+                          registrationId: 'JA.123456'
+                          utmId: 'UTM001'
+                          specificSessionId: '12345678901234567890'
+                    totalCount: 1
+        '400':
+          description: リクエストが不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    FlightLogListResponse:
+      type: object
+      required:
+        - flightLogs
+        - totalCount
+      properties:
+        flightLogs:
+          type: array
+          description: フライトログリスト
+          items:
+            $ref: '#/components/schemas/FlightLogResponse'
+        totalCount:
+          type: integer
+          description: 検索条件に一致した件数
+          example: 20
+    FlightLogResponse:
+      type: object
+      description: フライトログ（1件分のデータ）
+      properties:
+        subscriptionId:
+          type: string
+          description: サブスクリプションID
+          maxLength: 255
+          nullable: true
+          example: 'SUB001'
+        aircraftInfoId:
+          type: integer
+          description: 機体情報ID
+          nullable: true
+          example: 10
+        uaType:
+          type: string
+          description: 機体種別
+          maxLength: 255
+          nullable: true
+          example: 'multirotor'
+        getLocationTimestamp:
+          type: string
+          format: date-time
+          description: テレメトリ情報取得日時（ISO 8601形式）
+          nullable: true
+          example: '2025-11-27T10:30:45.000Z'
+        latitude:
+          type: number
+          format: double
+          description: 緯度、小数点 7 桁まで。
+          minimum: -90
+          maximum: 90
+          nullable: true
+          example: 35.6812
+        longitude:
+          type: number
+          format: double
+          description: 経度、小数点 7 桁まで。
+          minimum: -180
+          maximum: 180
+          nullable: true
+          example: 139.7671
+        altitude:
+          type: integer
+          description: 標高（メートル）
+          nullable: true
+          example: 50
+        trackDirection:
+          type: integer
+          description: 機体の進行方向（度、0-359）
+          minimum: 0
+          maximum: 359
+          nullable: true
+          example: 90
+        speed:
+          type: number
+          format: double
+          description: 機体の速度（m/s）
+          nullable: true
+          example: 10.5
+        verticalSpeed:
+          type: number
+          format: double
+          description: 機体の垂直速度（m/s、正の値は上昇）
+          nullable: true
+          example: 0.5
+        routeDeviationRate:
+          type: number
+          format: double
+          description: |
+            航路逸脱割合
+            - 0.0: 航路内
+            - 1.0: 航路逸脱中
+          nullable: true
+          example: 0.0
+        routeDeviationRateUpdateTime:
+          type: string
+          format: date-time
+          description: 航路逸脱割合更新時刻（ISO 8601形式）
+          nullable: true
+          example: '2025-11-27T10:30:45.000Z'
+        reservationId:
+          type: string
+          description: 航路予約ID
+          maxLength: 255
+          nullable: true
+          example: 'RES20251127001'
+        uaslId:
+          type: string
+          description: 航路ID
+          maxLength: 255
+          nullable: true
+          example: 'UASL001'
+        uaslSectionId:
+          type: string
+          description: 航路区画ID
+          maxLength: 255
+          nullable: true
+          example: 'SEC001'
+        operationalStatus:
+          type: string
+          description: |
+            運航状況
+            - RouteApproach: 航路進入中
+            - NormalOperation: 正常運航中
+            - RouteDeviation: 航路逸脱中
+            - PlannedRouteDeviation: 計画された航路逸脱
+          enum:
+            - RouteApproach
+            - NormalOperation
+            - RouteDeviation
+            - PlannedRouteDeviation
+          nullable: true
+          example: 'NormalOperation'
+        operatorId:
+          type: string
+          description: 運航者ID
+          maxLength: 255
+          nullable: true
+          example: 'OP12345'
+        flightTime:
+          type: string
+          description: |
+            飛行時間（HH:mm:ss.SSS形式）  
+            UTM(DSS)の制限により現状は24時間未満の範囲となります。
+          nullable: true
+          example: '00:15:30.000'
+        uasId:
+          type: object
+          description: 運航中ドローンを表す Json オブジェクト
+          properties:
+            serialNumber:
+              type: string
+              description: ドローンのシリアルナンバー。CTA-2063-A シリアルナンバーフォーマットで表現する。
+            registrationId:
+              type: string
+              description: ドローンの登録 ID。フォーマットは <ICAO 国籍マーク>.<CAA 割り当て ID>。ASCII エンコードされており、大文字の英字（A-Z）、ドット（.）、および数字（0-9）のみが許可される。(例) N.123456 
+            utmId:
+              type: string
+              description: 「セッションID」として機能します。
+            specificSessionId:
+              type: string
+              description: 特定のフライト (セッション) を識別するためのユニークな 20 バイトの ID。
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: エラーコード
+              example: 'BAD_REQUEST'
+            message:
+              type: string
+              description: エラーメッセージ
+              example: '必須パラメータが指定されていません'
+            details:
+              type: string
+              description: エラーの詳細情報
+              example: 'startTimeとendTimeは必須パラメータです'

@@ -1,5 +1,5 @@
 # prismでmockを起動するコマンド
-# prism mock -p 7000 sdsp-thirdpartyMonitoring-weather-openAPI.yaml
+# prism mock -p 7001 sdsp-thirdpartyMonitoring-weather-openAPI.yaml
 openapi: 3.0.0
 info:
   title: SDSP(空域デジタルツイン) API
@@ -423,10 +423,8 @@ components:
               Contents:
                 type: array
                 items:
-                  type: array
-                  items:
-                    type: number
-                    format: double
+                  type: number
+                  format: double
                 description: 予測データ数値
               RequestParameters:
                 type: object
@@ -708,8 +706,9 @@ components:
                     example: "2024-02-04T10:00:00Z"
                   intrusionStatus:
                     type: integer
+                    enum: [0, 1]
                     description: 侵入状態（0：侵入なし、1：侵入あり）
-                    example: 0
+                    example: 1
                   intrusions:
                     type: array
                     minItems: 4
@@ -736,13 +735,13 @@ components:
                     example:
                       - currentTime: "2024-02-04T10:00:00Z"
                         type: 1
-                        count: 0
+                        count: 2
                       - currentTime: "2024-02-04T10:00:00Z"
                         type: 2
-                        count: 0
+                        count: 1
                       - currentTime: "2024-02-04T10:00:00Z"
                         type: 3
-                        count: 0
+                        count: 5
                       - currentTime: "2024-02-04T10:00:00Z"
                         type: 4
                         count: 0

@@ -2,23 +2,65 @@ services:
   db:
     image: postgis/postgis:16-3.4
     container_name: postgis
-    hostname : postgis.local
+    hostname: postgis.local
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DATABASE: postgres
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     ports:
-     - "5432:5432"
+      - "5432:5432"
     volumes:
-     - ./postgis_data:/var/lib/postgresql/data
-     - ./common/ddl:/docker-entrypoint-initdb.d
+      - ./postgis_data:/var/lib/postgresql/data
+      - ./common/ddl:/docker-entrypoint-initdb.d
 
   safety-management:
-    image: safety-management-prod:latest
-    command: ["java", "-jar", "/app/app.war"]
+    image: safety-management-dev:latest
+    command: [ "java", "-jar", "/app/app.war" ]
     depends_on:
       - db
     ports:
-      - "8082:8080"
-      - "48082:48080"
+      - "8080:8080"
+      - "48080:48080"
+    environment:
+      # プロパティファイルの外部化用に設定ファイルを追加で読み込む場所を指定
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/config/
+    volumes:
+      # ホストの ./config ディレクトリをコンテナの /config にマウント
+      - ./config:/config:ro
+
+  prism-rev:
+    image: stoplight/prism:4
+    container_name: prism-rev
+    volumes:
+      - ./openAPI/uasl-reservation-openAPI.yaml:/tmp/uasl-reservation-openAPI.yaml
+    command: [ "mock", "-h", "0.0.0.0", "-p", "7004", "/tmp/uasl-reservation-openAPI.yaml" ]
+
+  prism-rail:
+    image: stoplight/prism:4
+    container_name: prism-rail
+    volumes:
+      - ./openAPI/sdsp-railway-event-openAPI_正常.yaml:/tmp/sdsp-railway-event-openAPI.yaml
+    command: [ "mock", "-h", "0.0.0.0", "-p", "7004", "/tmp/sdsp-railway-event-openAPI.yaml" ]
+
+  prism-third:
+    image: stoplight/prism:4
+    container_name: prism-third
+    volumes:
+      - ./openAPI/sdsp-thirdpartyMonitoring-weather-openAPI_正常.yaml:/tmp/sdsp-thirdpartyMonitoring-weather-openAPI.yaml
+    command: [ "mock", "-h", "0.0.0.0", "-p", "7004", "/tmp/sdsp-thirdpartyMonitoring-weather-openAPI.yaml" ]
+
+  prism-utm:
+    image: stoplight/prism:4
+    container_name: prism-utm
+    volumes:
+      - ./openAPI/utm-openAPI.yaml:/tmp/utm-openAPI.yaml
+    command: [ "mock", "-h", "0.0.0.0", "-p", "7004", "/tmp/utm-openAPI.yaml" ]
+
+  activemq:
+    image: rmohr/activemq:5.15.9
+    container_name: activemq2
+    hostname: activemq2.local
+    ports:
+      - "8161:8161"     # Web コンソール
+      - "1883:1883"     # MQTT

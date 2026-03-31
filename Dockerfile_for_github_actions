@@ -1,0 +1,65 @@
+ARG TARGET_APP=safety-management
+ARG VERSION=0.0.1
+ARG ENV_TYPE=dev
+
+# ビルドステージ
+FROM gradle:8.10.2-jdk21-alpine AS builder
+ARG TARGET_APP
+ARG VERSION
+ARG ENV_TYPE
+COPY --chown=gradle:gradle ./ /home/gradle/
+
+WORKDIR /home/gradle
+
+# system.propertiesをテスト用に修正
+# backup作成
+RUN cp /home/gradle/${TARGET_APP}/src/main/resources/system.properties /home/gradle/${TARGET_APP}/src/main/resources/system_${ENV_TYPE}.properties
+# 各設定をテスト用に変更
+RUN sed -i \
+    -e "s|^get.uasl.reservation.url.*|get.uasl.reservation.url=http://localhost:7001/uaslReservations/{0}|g" \
+    -e "s|^put.notify.conformity.assessment.result.url.*|put.notify.conformity.assessment.result.url=http://localhost:7001/safetyManagement/notifyConformity-AssessmentResult|g" \
+    -e "s|^get.weather.forecast.time.url.*|get.weather.forecast.time.url=http://localhost:7000/safetyManagement/weather-forecast-time|g" \
+    -e "s|^get.weather.wind.speeds.url.*|get.weather.wind.speeds.url=http://localhost:7000/safetyManagement/obtaining-weather-wind-speeds|g" \
+    -e "s|^post.monitoring.notification.destination.registration.url.*|post.monitoring.notification.destination.registration.url=http://localhost:7000/third-party-entry-notification-registration|g" \
+    -e "s|^put.monitoring.notification.destination.change.url.*|put.monitoring.notification.destination.change.url=http://localhost:7000/third-party-entry-notification-change|g" \
+    -e "s|^delete.monitoring.notification.destination.deletion.url.*|delete.monitoring.notification.destination.deletion.url=http://localhost:7000/third-party-entry-notification-deletion|g" \
+    -e "s|^get.third.party.monitoring.information.url.*|get.third.party.monitoring.information.url=http://localhost:7000/api/StorageSystem/intrusions|g" \
+    -e "s|^post.restricted.air.space.url.*|post.restricted.air.space.url=http://localhost:7004/event/restrictedAirSpace|g" \
+    -e "s|^get.railway.operation.information.url.*|get.railway.operation.information.url=http://localhost:7004/railwayService/regularDiagram|g" \
+    -e "s|^subscription.registration.and.deletion.url.*|subscription.registration.and.deletion.url=http://localhost:7003/api/v1/uasl/subscription|g" \
+    -e "s|^mqtt.host.*|mqtt.host=localhost|g" \
+    -e "s|^mqtt.port.*|mqtt.port=1883|g" \
+    /home/gradle/${TARGET_APP}/src/main/resources/system.properties
+
+# using test
+RUN gradle :${TARGET_APP}:build --no-daemon
+
+# system.propertiesをbackupから復元
+RUN mv /home/gradle/${TARGET_APP}/src/main/resources/system_${ENV_TYPE}.properties /home/gradle/${TARGET_APP}/src/main/resources/system.properties
+
+# war作成
+RUN gradle :${TARGET_APP}:bootwar --no-daemon
+
+# 実行ステージ
+FROM eclipse-temurin:21-jre-jammy
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get -y upgrade && rm -rf /var/lib/apt/lists/*
+ARG TARGET_APP
+ARG VERSION
+
+# 設定ファイル用ディレクトリ
+RUN mkdir /config
+# 作業ディレクトリ
+WORKDIR /app
+# ビルドステージからSpring Bootアプリケーションのwarファイルをコピー
+COPY --from=builder /home/gradle/${TARGET_APP}/build/libs/${TARGET_APP}-${VERSION}.war app.war
+# ポートを公開 (Spring Bootのデフォルトポート)
+EXPOSE 8080
+EXPOSE 48080
+
+# ビルドステージからレポートを入手
+RUN mkdir /report
+COPY --from=builder /home/gradle/${TARGET_APP}/build/reports /reports
+
+# アプリケーションの実行コマンド
+ENTRYPOINT ["java","-jar","app.war"]

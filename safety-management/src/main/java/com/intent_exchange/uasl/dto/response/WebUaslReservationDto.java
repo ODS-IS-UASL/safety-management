@@ -1,0 +1,55 @@
+/*
+ * Copyright 2025 Intent Exchange, Inc.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package com.intent_exchange.uasl.dto.response;
+
+import java.util.List;
+
+import lombok.Data;
+
+/** 航路区画情報dto */
+@Data
+public class WebUaslReservationDto {
+
+  /** 航路予約毎の識別ID */
+  private String uaslReservationId;
+  /** 予約開始日時 */
+  private String startAt;
+  /** 予約終了日時 */
+  private String endAt;
+  /** 予約登録日時 */
+  private String reservedAt;
+  /** 航路区画ID配列 */
+  private List<String> uaslSectionIds;
+  /** 航路区画ID配列 */
+  private List<WebUaslSectionsDto> uaslSections;
+  /** 運航事業者ID */
+  private String operatorId;
+  /** 適合性評価結果 */
+  private Boolean evaluationResults;
+  /** 第三者立入監視情報 適合性評価結果 */
+  private Boolean thirdPartyEvaluationResults;
+  /** 第三者立入監視情報 鉄道運航情報 */
+  private Boolean railwayOperationEvaluationResults;
+  /** 計画的な航路逸脱フラグ */
+  private Boolean plannedDeviation;
+  /** 機体情報ID */
+  private Integer aircraftInfoId;
+}
+

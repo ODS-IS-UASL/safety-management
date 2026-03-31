@@ -1,10 +1,10 @@
 openapi: 3.0.0
 info:
-  title: 安全管理支援(A-1-4) API
+  title: 安全管理支援(SafetyManagement) API
   version: 1.0.0
 tags:
   - name: DroneLocation
-    description: 安全管理支援(A-1-4)のコントローラクラス。
+    description: 安全管理支援(SafetyManagement)のコントローラクラス。
 paths:
   /get-current-location/{reservationId}:
     get:
@@ -73,10 +73,10 @@ components:
           description: |
             ドローンの対地高度（m）  
             不正値の場合あり。その場合は、-1000 を設定する予定。
-        airwayId:
+        uaslId:
           type: string
           description: 航路 ID
-        airwaySectionId:
+        uaslSectionId:
           type: string
           description: 航路区画 ID
         operationalStatus:

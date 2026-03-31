@@ -1,0 +1,89 @@
+
+openapi: 3.0.0
+info:
+  title: 安全管理支援(SafetyManagement) API
+  version: 1.0.1
+tags:
+  - name: 予約IDとリモートIDの紐付け情報通知
+paths:
+  /linkage:
+    post:
+      summary: 予約IDとリモートIDの紐付け情報通知
+      description: 航路予約成立時に、共通GUIが、予約IDと対応するリモートID・機体情報IDを航路の安全管理(SafetyManagement)へ通知する。
+      operationId: notifyLinkageInformation
+      tags:
+        - 予約IDとリモートIDの紐付け情報通知
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkageInformationNotificationEntity'
+      responses:
+        '200':
+          description: 作成成功
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+
+components:
+  schemas:
+    LinkageInformationNotificationEntity:
+      type: object
+      description: 機体ID(リモートID)と航路予約毎の識別IDを受信し、予約情報を保存API用のentity
+      properties:
+        uaslReservationId:
+          type: string
+          x-baseName: uaslReservationId
+          description: 航路予約毎の識別ID
+        uasId:
+          type: object
+          description: 運航中ドローンを表す Json オブジェクト。
+          properties:
+            serialNumber:
+              type: string
+              description: ドローンのシリアルナンバー。CTA-2063-A シリアルナンバーフォーマットで表現する。
+            registrationId:
+              type: string
+              description: ドローンの登録 ID。フォーマットは <ICAO 国籍マーク>.<CAA 割り当て ID>。ASCII エンコードされており、大文字の英字（A-Z）、ドット（.）、および数字（0-9）のみが許可される。(例) N.123456 
+            utmId:
+              type: string
+              description: 「セッションID」として機能します。
+            specificSessoionId:
+              type: string
+              description: 特定のフライト (セッション) を識別するためのユニークな 20 バイトの ID。
+        aircraftInfoId:
+          type: integer
+          description: 機体情報ID
+    ErrorResponseEntity:
+      type: object
+      description: エラー時のResponse用Entity
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "入力チェックエラー"
+        description:
+          type: string
+          description: 詳細
+          example: "0 以上の値にしてください"
+  responses:
+    '400':
+      description: 入力チェックエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '500':
+      description: サーバーエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'

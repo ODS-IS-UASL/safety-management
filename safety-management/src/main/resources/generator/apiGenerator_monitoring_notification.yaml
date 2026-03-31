@@ -1,0 +1,109 @@
+openapi: 3.0.0
+info:
+  title: 第三者立入監視情報通知 API
+  version: 1.0.0
+tags:
+  - name: MonitoringNotification
+    description: 第三者立入監視情報通知のコントローラクラス。
+paths:
+  /monitoring-notification-destination-registration:
+    post:
+      # No.XX(ドローン航路_機能間IF一覧状の採番が未定 ※共通UI-航路の安全管理)
+      summary: 第三者立入監視情報の通知の登録
+      description: 変更があった場合に通知(Subscribe)を行うため、航路の安全管理支援(SafetyManagement)の通知先をデータプロバイダに登録する。
+      operationId: registerMonitoringNotificationDestination
+      tags:
+        - MonitoringNotification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonitoringNotificationDestinationRequestEntity"
+      responses:
+        '201':
+          description: 正常終了
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+  /monitoring-notification-destination-change:
+    put:
+      # No.XX(ドローン航路_機能間IF一覧状の採番が未定 ※共通UI-航路の安全管理)
+      summary: 第三者立入監視情報の通知の変更
+      description: データプロバイダに登録した情報変更通知先を変更する。
+      operationId: changeMonitoringNotificationDestination
+      tags:
+        - MonitoringNotification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonitoringNotificationDestinationRequestEntity"
+      responses:
+        '204':
+          description: 正常終了
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+  /monitoring-notification-destination-deletion:
+    delete:
+      # No.XX(ドローン航路_機能間IF一覧状の採番が未定 ※共通UI-航路の安全管理)
+      summary: 第三者立入監視情報の通知の変更
+      description: データプロバイダに登録した情報変更通知先を削除する。
+      operationId: deleteMonitoringNotificationDestination
+      tags:
+        - MonitoringNotification
+      responses:
+        '204':
+          description: 正常終了
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '500':
+          description: サーバーエラー
+          $ref: '#/components/responses/500'
+components:
+  schemas:
+    MonitoringNotificationDestinationRequestEntity:
+      type: object
+      description: 通知先情報
+      required:
+        - endPoint
+      properties:
+        endPoint:
+          type: string
+          example: https://****/++++/
+    ErrorResponseEntity:
+      type: object
+      description: エラー時のResponse用Entity
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "入力チェックエラー"
+        description:
+          type: string
+          description: 詳細
+          example: "0 以上の値にしてください"
+  responses:
+    '400':
+      description: 入力チェックエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '500':
+      description: サーバーエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'

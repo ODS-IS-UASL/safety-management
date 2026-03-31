@@ -1,0 +1,186 @@
+openapi: 3.0.0
+info:
+  title: 安全管理支援(SafetyManagement) API
+  version: 1.0.0
+tags:
+  - name: ThirdPartyEntryNotification
+    description: 安全管理支援(SafetyManagement)のコントローラクラス。
+paths:
+  /api/area:
+    post:
+      summary: 第三者立入監視情報の変更通知
+      description: 第三者立入監視情報に変更があった場合に航路の安全管理支援(SafetyManagement)側へ通知する。
+      operationId: notifyThirdPartyEntry
+      tags:
+        - ThirdPartyEntryNotification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThirdPartyEntryNotificationEntity"
+      responses:
+        '200':
+          description: 成功
+        '400':
+          description: 入力チェックエラー
+          $ref: '#/components/responses/400'
+        '401':
+          description: 認証エラー
+          $ref: '#/components/responses/401'
+components:
+  schemas:
+    ThirdPartyEntryNotificationEntity:
+      type: object
+      description: 第三者立入監視情報のエンティティ
+      properties:
+        type:
+          type: string
+          description: FeatureCollectionを指定
+        features:
+          type: array
+          description: 監視エリアおよび侵入検知対象の情報  
+          minItems: 1
+          maxItems: 99
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - Feature
+              geometry:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: Polygonのみを指定
+                  coordinates:
+                    type: array
+                    minItems: 1
+                    maxItems: 1
+                    items:
+                      type: array
+                      description: |
+                        監視エリア（ポリゴン）を外接する矩形の左上および右下の頂点の測地座標の配列。この2点で監視エリアを囲む最小の矩形を表現。
+                        各座標は[経度, 緯度, 高度]の順で指定。
+                        例：
+                        [
+                          [135.123456, 35.123456, 0.0],    # 左上の座標（経度,緯度,高度）
+                          [136.123456, 34.123456, 0.0]     # 右下の座標（経度,緯度,高度）
+                        ]
+                      minItems: 3
+                      items:
+                        type: array
+                        minItems: 3
+                        maxItems: 3
+                        items:
+                          type: number
+                          format: double
+                          minimum: -180.0000
+                          maximum: 180.0000
+              properties:
+                type: object
+                properties:
+                  area:
+                    type: string
+                    minLength: 1
+                    maxLength: 64
+                    description: 監視エリア名
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 送信時刻
+                  intrusionStatus:
+                    type: integer
+                    description: 侵入状態（0：侵入なし、1：侵入あり）
+                    enum:
+                      - 0
+                      - 1
+                  traffics:
+                    type: array
+                    description: |
+                      侵入検知対象の情報を配列で指定する。
+                      ■送信条件：
+                      ・侵入ありの場合：継続的に送信を続けます。
+                      ・侵入なしの場合：
+                        - 内部では traffics.type:0 を設定（内部保持用）
+                        - 外部送信時の挙動：
+                          1. 侵入状態が1→0に変化した際、最後に検知された種別(1,2,3,4)で count:0 を1回だけ送信
+                          2. その後、新たな侵入が検知されるまでデータは送信されない
+                    items:
+                      type: object
+                      properties:
+                        currentTime:
+                          type: string
+                          format: date-time
+                          description: 侵入検知対象がいる時刻
+                        type:
+                          type: integer
+                          description: |
+                             侵入検知対象の種別:
+                             無：0 （内部保持用。外部送信時は使用しない）
+                             車：1
+                             自転車：2
+                             人：3
+                             バイク：4
+                             ※ 侵入なしの状態では、最後に検知された種別(1,2,3,4)を使用し count:0 として送信
+                          enum:
+                            - 0
+                            - 1
+                            - 2
+                            - 3
+                            - 4
+                        count:
+                          type: integer
+                          description: 侵入検知対象の検出数
+                          minimum: 0
+                          maximum: 100
+      example:
+        - ThirdPartyEntryNotificationEntity:
+            type: "FeatureCollection"
+            features:
+              - type: "feature"
+                geometry:
+                  type: "Polygon"
+                  coordinates:
+                    [[139.6917, 35.6895, 10], [139.6920, 35.6895, 10], [139.6920, 35.6900, 10], [139.6917, 35.6900, 10], [139.6917, 35.6895, 10]]
+                properties:
+                  area: "IncidentArea_0"
+                  timestamp: "2024-09-22T12:34:56Z"
+                  intrusionStatus: 1
+                  traffics:
+                    - current_time: "2024-09-22T12:34:50Z"
+                      type: "車"
+                      count: 2
+                    - current_time: "2024-09-22T12:34:51Z"
+                      type: "人"
+                      count: 3
+    ErrorResponseEntity:
+      type: object
+      description: エラー時のResponse用Entity
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "入力チェックエラー"
+        description:
+          type: string
+          description: 詳細
+          example: "0 以上の値にしてください"
+  responses:
+    '400':
+      description: 入力チェックエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'
+    '401':
+      description: 認証エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEntity'

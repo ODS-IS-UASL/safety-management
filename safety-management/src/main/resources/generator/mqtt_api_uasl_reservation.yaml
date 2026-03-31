@@ -1,0 +1,189 @@
+asyncapi: 3.0.0
+info:
+  title: 航路予約
+  version: 1.0.0
+  description: 航路予約通知に関するMQTTのインタフェース仕様書
+defaultContentType: application/json
+servers:
+  activemq:
+    host: '{url}:8883'
+    protocol: mqtts
+    description: MQTTブローカー
+channels:
+  uaslReservation:
+    address: uasl/operator/{operatorId}/uaslReservation/{uaslReservationId}
+    messages:
+      uaslReserved:
+        $ref: '#/components/messages/uaslReservation'
+      uaslReservationCanceled:
+        $ref: '#/components/messages/uaslReservationCancellation'
+      uaslReservationRescinded:
+        $ref: '#/components/messages/uaslReservationRescission'
+    description: 航路予約通知トピック
+    parameters:
+      operatorId:
+        description: 運航事業者ID
+      uaslReservationId:
+        description: 航路予約ID
+operations:
+  uaslReservation:
+    action: receive
+    channel:
+      $ref: '#/channels/uaslReservation'
+    messages:
+      - $ref: '#/channels/uaslReservation/messages/uaslReserved'
+      - $ref: '#/channels/uaslReservation/messages/uaslReservationCanceled'
+      - $ref: '#/channels/uaslReservation/messages/uaslReservationRescinded'
+components:
+  messages:
+    uaslReservation:
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UaslReservation'
+    uaslReservationCancellation:
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UaslReservationCancellation'
+    uaslReservationRescission:
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UaslReservationRescission'
+  schemas:
+    UaslReservation:
+      type: object
+      description: 航路事業者が航路予約した際のペイロード
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: PublishイベントID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        uaslReservationId:
+          type: string
+          format: uuid
+          description: 航路予約ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        operatorId:
+          type: string
+          format: uuid
+          description: 運航事業者(予約者)ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        uaslSections:
+          $ref: '#/components/schemas/UaslSections'
+        status:
+          type: string
+          enum:
+            - 'RESERVED'
+            - 'CANCELED'
+            - 'RESCINDED'
+          description: 予約状態
+          example: 'RESERVED'
+        reservedAt:
+          type: string
+          format: date-time
+          description: 予約完了日時
+          example: '2024-12-13T18:53:38Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: 予約状態更新日時
+          example: ''
+    UaslReservationCancellation:
+      type: object
+      description: 航路予約が航路事業者側からキャンセルされた際のペイロード
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: PublishイベントID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        uaslReservationId:
+          type: string
+          format: uuid
+          description: 航路予約ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        operatorId:
+          type: string
+          format: uuid
+          description: 運航事業者(予約者)ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        uaslSections:
+          $ref: '#/components/schemas/UaslSections'
+        status:
+          type: string
+          enum:
+            - 'RESERVED'
+            - 'CANCELED'
+            - 'RESCINDED'
+          description: 予約状態
+          example: 'CANCELED'
+        reservedAt:
+          type: string
+          format: date-time
+          description: 予約完了日時
+          example: '2024-12-13T18:53:38Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: 予約状態更新日時
+          example: '2024-12-13T18:53:38Z'
+    UaslReservationRescission:
+      type: object
+      description: 航路予約が航路運営者側から撤回された際のペイロード
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: PublishイベントID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        uaslReservationId:
+          type: string
+          format: uuid
+          description: 航路予約ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        operatorId:
+          type: string
+          format: uuid
+          description: 運航事業者(予約者)ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        uaslSections:
+          $ref: '#/components/schemas/UaslSections'
+        status:
+          type: string
+          enum:
+            - 'RESERVED'
+            - 'CANCELED'
+            - 'RESCINDED'
+          description: 予約状態
+          example: 'RESCINDED'
+        reservedAt:
+          type: string
+          format: date-time
+          description: 予約完了日時
+          example: '2024-12-13T18:53:38Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: 予約状態更新日時
+          example: '2024-12-13T18:53:38Z'
+    UaslSections:
+      type: array
+      description: 航路区画毎の確保時間
+      items:
+        type: object
+        properties:
+          uaslSectionId:
+            type: string
+            format: uuid
+            description: 航路区画ID
+            example: 123e4567-e89b-12d3-a456-426614174000
+          startAt:
+            type: string
+            format: date-time
+            description: 予約開始日時
+            example: '2024-12-13T18:53:38Z'
+          endAt:
+            type: string
+            format: date-time
+            description: 予約終了日時
+            example: '2024-12-13T18:53:38Z'

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ENV_TYPE=prod
+ENV_TYPE=dev
 
 sudo docker run --rm -d --name db --network host \
     --hostname=postgis.$ENV_TYPE-ix-aws-local \
@@ -28,7 +28,7 @@ sudo docker exec $(docker ps -q --filter "ancestor=postgis/postgis:16-3.4") \
 bash -c "psql -U test_safety_management -d test_postgis -f /data.sql"
 
 sudo docker exec $(docker ps -q --filter "ancestor=postgis/postgis:16-3.4") \
-bash -c "psql -U test_safety_management -d test_postgis -c 'SELECT * FROM test_safety_management.t_airway_reservation;'"
+bash -c "psql -U test_safety_management -d test_postgis -c 'SELECT * FROM test_safety_management.t_uasl_reservation;'"
 
 sudo docker run -d --rm --network host \
     --name activemq-classic5.18 \

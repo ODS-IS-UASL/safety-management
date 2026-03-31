@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: ヒヤリハット情報の取得
   version: 1.0.0
-  description: 航路の安全管理支援(A-1-4)において、指定された情報をもとにヒヤリハット情報を返す。
+  description: 航路の安全管理支援(SafetyManagement)において、指定された情報をもとにヒヤリハット情報を返す。
 tags:
   - name: NearMissInformation
     description: ヒヤリハット情報の取得API
@@ -100,7 +100,7 @@ components:
               format: date-time
               description: 終了日時
               example: yyyy-mm-ddTHH:mm:ssZ
-            airwayAdministratorId:
+            uaslAdministratorId:
               type: string
               description: 航路運営者ID
               example: 123e4567-e89b-12d3-a456-426614174000
@@ -108,11 +108,11 @@ components:
               type: string
               description: 運航事業者ID
               example: 123e4567-e89b-12d3-a456-426614174000
-            airwayId:
+            uaslId:
               type: string
               description: 航路ID
               example: 123e4567-e89b-12d3-a456-426614174000
-            airwaySectionId:
+            uaslSectionId:
               type: string
               description: 航路区画のID
               example: 123e4567-e89b-12d3-a456-426614174000
@@ -165,7 +165,7 @@ components:
                     format: date-time
                     description: 逸脱検知時刻
                     example: yyyy-mm-ddTHH:mm:ssZ
-                  airwayAdministratorId:
+                  uaslAdministratorId:
                     type: string
                     description: 航路運営者ID
                     example: 123e4567-e89b-12d3-a456-426614174000
@@ -173,7 +173,7 @@ components:
                     type: string
                     description: 運航事業者ID
                     example: 123e4567-e89b-12d3-a456-426614174000
-                  airwayId:
+                  uaslId:
                     type: string
                     description: 航路ID
                     example: 123e4567-e89b-12d3-a456-426614174000
@@ -186,7 +186,7 @@ components:
                       type: object
                       description: 航路逸脱検知情報のエンティティ
                       properties:
-                        airwaySectionId:
+                        uaslSectionId:
                           type: string
                           description: 航路区画のID
                           example: 123e4567-e89b-12d3-a456-426614174000
@@ -298,16 +298,16 @@ components:
                                         description: 侵入検知対象の検出数
                                         minimum: 0
                                         maximum: 100
-                  airwayAdministratorId:
+                  uaslAdministratorId:
                     type: string
                     description: 航路運営者ID
                   operatorId:
                     type: string
                     description: 運航事業者ID
-                  airwayId:
+                  uaslId:
                     type: string
                     description: 航路ID
-                  airwaySectionId:
+                  uaslSectionId:
                     type: string
                     description: 航路区画のID
                 example:
@@ -329,10 +329,10 @@ components:
                               - current_time: "2024-09-22T12:34:51Z"
                                 type: "人"
                                 count: 3
-                    airwayAdministratorId: "123e4567-e89b-12d3-a456-426614174000"
+                    uaslAdministratorId: "123e4567-e89b-12d3-a456-426614174000"
                     operatorId: "123e4567-e89b-12d3-a456-426614174000"
-                    airwayId: "123e4567-e89b-12d3-a456-426614174000"
-                    airwaySectionId: "123e4567-e89b-12d3-a456-426614174000"
+                    uaslId: "123e4567-e89b-12d3-a456-426614174000"
+                    uaslSectionId: "123e4567-e89b-12d3-a456-426614174000"
                   - thirdPartyInfo:
                       type: "feature"
                       geometry:
@@ -349,10 +349,10 @@ components:
                           - current_time: "2024-10-22T12:34:51Z"
                             type: "人"
                             count: 5
-                    airwayAdministratorId: "123e4567-e89b-12d3-a456-426614174000"
+                    uaslAdministratorId: "123e4567-e89b-12d3-a456-426614174000"
                     operatorId: "123e4567-e89b-12d3-a456-426614174000"
-                    airwayId: "123e4567-e89b-12d3-a456-426614174000"
-                    airwaySectionId: "123e4567-e89b-12d3-a456-426614174000"
+                    uaslId: "123e4567-e89b-12d3-a456-426614174000"
+                    uaslSectionId: "123e4567-e89b-12d3-a456-426614174000"
           required:
             - RouteDeviationInfo
             - ThirdPartyEntryMonitoring

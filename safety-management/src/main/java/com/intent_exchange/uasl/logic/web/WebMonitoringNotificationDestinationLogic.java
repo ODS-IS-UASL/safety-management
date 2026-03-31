@@ -1,0 +1,90 @@
+/*
+ * Copyright 2025 Intent Exchange, Inc.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package com.intent_exchange.uasl.logic.web;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import com.intent_exchange.uasl.dto.request.MonitoringNotificationDestinationRequestDto;
+
+/**
+ * 空域デジタルツイン 第三者立入監視情報への通信用ロジック
+ */
+@Component
+public class WebMonitoringNotificationDestinationLogic {
+
+  /** 第三者立入監視情報通知先の登録URL。 */
+  @Value("${post.monitoring.notification.destination.registration.url:''}")
+  private String postMonitoringNotificationDestinationRegistrationUrl;
+  /** 第三者立入監視情報通知先の変更URL。 */
+  @Value("${put.monitoring.notification.destination.change.url:''}")
+  private String putMonitoringNotificationDestinationChangeUrl;
+  /** 第三者立入監視情報通知先の削除URL。 */
+  @Value("${delete.monitoring.notification.destination.deletion.url:''}")
+  private String deleteMonitoringNotificationDestinationDeletionUrl;
+
+  /** RestTemplateインスタンス。 このインスタンスを使用してHTTPリクエストを送信します。 */
+  @Autowired
+  @Qualifier("customRestTemplate")
+  private RestTemplate restTemplate;
+
+  /**
+   * 変更があった場合に通知(Subscribe)を行うため、航路の安全管理支援(SafetyManagement)の通知先をデータプロバイダに登録する。
+   * 
+   * @param monitoringNotificationDestinationRequestDto 第三者立入監視情報の通知先を格納するdto
+   */
+  public void registerMonitoringNotificationDestination(
+      MonitoringNotificationDestinationRequestDto monitoringNotificationDestinationRequestDto) {
+    // 通知先の登録リクエスト送信
+    // 201:正常終了、400:入力チェックエラー、500:サーバーエラー
+    // ※201以外の異常終了時の処理は、共通のexceptionHandlerで処理
+    restTemplate.postForObject(postMonitoringNotificationDestinationRegistrationUrl,
+        monitoringNotificationDestinationRequestDto, ResponseEntity.class);
+  }
+
+  /**
+   * データプロバイダに登録した情報変更通知先を変更する。
+   * 
+   * @param thirdPartyEntryRequestDto 第三者立入監視情報の通知先を格納するdto
+   */
+  public void changeMonitoringNotificationDestination(
+      MonitoringNotificationDestinationRequestDto monitoringNotificationDestinationRequestDto) {
+    // 通知先の変更リクエスト送信
+    // 204:正常終了、400:入力チェックエラー、500:サーバーエラー
+    // ※204以外の異常終了時の処理は、共通のexceptionHandlerで処理
+    restTemplate.put(putMonitoringNotificationDestinationChangeUrl,
+        monitoringNotificationDestinationRequestDto);
+  }
+
+  /**
+   * データプロバイダに登録した情報変更通知先を削除する。
+   */
+  public void deleteMonitoringNotificationDestination() {
+    // 通知先の削除リクエスト送信
+    // 204:正常終了、400:入力チェックエラー、500:サーバーエラー
+    // ※204以外の異常終了時の処理は、共通のexceptionHandlerで処理
+    restTemplate.delete(deleteMonitoringNotificationDestinationDeletionUrl);
+  }
+
+}
+
